@@ -11242,10 +11242,3 @@
                                                                                                     background-color: #000;
                                                                                                     color: #fff;
                                                                                                 }
-                                                                                                
-                                                                                                body {
-                                                                                                    color: var(--text-color);
-                                                                                                    background: var(--bg-color);
-                                                                                                    transition: 0.3s ease-out;
-                                                                                                    overflow-x: hidden;
-                                                                                                }
