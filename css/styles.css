@@ -1,6 +1,9 @@
-                                                                                                            @charset "UTF-8";
-                                                                                                             :root {
-                                                                                                                --bs-blue: #0d6efd;
+@charset "UTF-8";
+html {
+    width: 100%;
+}
+:root {
+--bs-blue: #0d6efd;
                                                                                                                 --bs-indigo: #6610f2;
                                                                                                                 --bs-purple: #6f42c1;
                                                                                                                 --bs-pink: #d63384;
@@ -254,7 +257,7 @@
                                                                                                             
                                                                                                             a {
                                                                                                                 color: #151327;
-                                                                                                                text-decoration: underline;
+                                                                                                                text-decoration: none;
                                                                                                             }
                                                                                                             
                                                                                                             a:hover {
@@ -11246,3 +11249,13 @@
                                                                                                             .sized {
                                                                                                                 font-size: medium;
                                                                                                             }
+                                                                                                            .document {
+                                                                                                                background-color: #000;
+                                                                                                            }
+                                                                                                            .darkmode {
+                                                                                                                  color: #fff !important;
+                                                                                                            }
+.color-dark {
+    color: #151327;
+    cursor: help;
+}
