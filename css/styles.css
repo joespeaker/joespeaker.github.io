@@ -11253,7 +11253,10 @@ html {
                                                                                                                 background-color: #000;
                                                                                                             }
                                                                                                             .darkmode {
-                                                                                                                  color: #fff !important;
+                                                                                                                  color: #ddd !important;
+                                                                                                            }
+                                                                                                            .darkermode {
+                                                                                                                color: #fff !important;
                                                                                                             }
 .color-dark {
     color: #151327;
