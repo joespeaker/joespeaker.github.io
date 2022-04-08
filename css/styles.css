@@ -11240,12 +11240,11 @@ html {
                                                                                                             .navbar {
                                                                                                                 background-color: #151327 !important;
                                                                                                             }
-                                                                                                            
                                                                                                             .ubba a:hover {
                                                                                                                 background-color: #000;
                                                                                                                 color: #fff;
+                                                                                                                border-radius: 4px;
                                                                                                             }
-                                                                                                            
                                                                                                             .sized {
                                                                                                                 font-size: medium;
                                                                                                             }
