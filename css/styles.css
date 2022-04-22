@@ -11261,4 +11261,27 @@ html {
     color: #151327;
     cursor: help;
 }
-/* #022EBF */
+
+.underline {
+    display: inline;
+    position: relative;
+    overflow: hidden;
+}
+.underline:after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 100%;
+    bottom: -5px;
+    background: #151327;
+    height: 4px;
+    transition-property: left right;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+}
+.underline:hover:after,
+.underline:focus:after,
+.underline:active:after {
+    right: 0;
+}
