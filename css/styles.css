@@ -11254,9 +11254,9 @@ html {
                                                                                                             .darkmode {
                                                                                                                   color: #ddd !important;
                                                                                                             }
-                                                                                                            .darkermode {
-                                                                                                                color: #fff !important;
-                                                                                                            }
+.darkermode {
+    color: #fff !important;
+}
 .color-dark {
     color: #151327;
     cursor: help;
@@ -11280,8 +11280,31 @@ html {
     transition-duration: 0.3s;
     transition-timing-function: ease-out;
 }
+.underline1 {
+    display: inline;
+    position: relative;
+    overflow: hidden;
+}
+.underline1:after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 100%;
+    bottom: -5px;
+    background: #fff;
+    height: 4px;
+    transition-property: left right;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+}
 .underline:hover:after,
 .underline:focus:after,
 .underline:active:after {
+    right: 0;
+}
+.underline1:hover:after,
+.underline1:focus:after,
+.underline1:active:after {
     right: 0;
 }

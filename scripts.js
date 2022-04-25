@@ -39,20 +39,18 @@ function darkMode() {
     let bg = document.getElementById("page-top");
     let link = document.getElementsByTagName("a");
     let text = document.getElementsByClassName("text-primary");
-    let nav = document.getElementsByClassName("nav-link");
     let p = document.getElementsByTagName("p");
     let h2 = document.getElementsByTagName("h2");
     let h3 = document.getElementsByTagName("h3");
     let li = document.getElementsByTagName("li");
+    let dont = document.getElementsByClassName("no");
+    let kinda = document.getElementsByClassName("kinda")
     if(darkmode == 0) {
         bg.classList.add("document");
         for(let i = 0; i < link.length; i++){
             link[i].classList.add("darkmode");
-        }
-        for(let i = 0; i < nav.length; i++){
-            if(nav[i].getElementsByClassName("darkmode")){
-                nav[i].classList.remove("darkmode");
-            }
+            link[i].classList.add("underline1")
+            link[i].classList.remove("underline")
         }
         for(let i = 0; i < text.length; i++){
             text[i].classList.add("darkmode");
@@ -69,12 +67,23 @@ function darkMode() {
         for(let i = 0; i < li.length; i++){
                 li[i].classList.add("darkmode");
         }
-        
+        for(let i = 0; i < dont.length; i++){
+            if(dont[i].getElementsByClassName("darkmode")){
+                dont[i].classList.remove("darkmode");
+            }
+        }
+        for(let i = 0; i < kinda.length; i++){
+            if(kinda[i].getElementsByClassName("underline1")){
+                kinda[i].classList.remove("underline1");
+            }
+        }
         darkmode++;
     } else {
         bg.classList.remove("document");
         for(let i = 0; i < link.length; i++){
             link[i].classList.remove("darkmode");
+            link[i].classList.remove("underline1")
+            link[i].classList.add("underline")
         }
         for(let i = 0; i < text.length; i++){
             text[i].classList.remove("darkmode");
@@ -92,6 +101,11 @@ function darkMode() {
             h3[i].classList.remove("darkermode");
         }for(let i = 0; i < li.length; i++){
             li[i].classList.remove("darkmode");
+        }
+        for(let i = 0; i < kinda.length; i++){
+            if(kinda[i].getElementsByClassName("underline")){
+                kinda[i].classList.remove("underline");
+            }
         }
         darkmode--;
     }
