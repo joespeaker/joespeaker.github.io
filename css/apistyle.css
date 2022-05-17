@@ -1,0 +1,9 @@
+#text {
+    margin: 25px;
+    padding: 10px;
+}
+div {
+    border: 1px solid red;
+    display: flex;
+    justify-content: center;
+}
