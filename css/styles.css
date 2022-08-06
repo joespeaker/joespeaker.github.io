@@ -11316,3 +11316,8 @@ html {
     opacity: 1;
     transform: translate(0, 0);
 }
+.myButton{
+    background-color: transparent;
+	text-decoration:none;
+    border: none;
+}
