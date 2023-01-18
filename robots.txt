@@ -4,4 +4,7 @@ Disallow: /nogooglebot/
 User-agent: *
 Allow: /
 
+User-agent: Googlebot
+Disallow: /qedwealthsolutions
+
 Sitemap: https://www.joebieker.com/sitemap.xml
