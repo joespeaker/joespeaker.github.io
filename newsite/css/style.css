@@ -1,0 +1,61 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* div {
+    border: #fff solid 1px;
+} */
+.noise {
+    background: 
+      linear-gradient(20deg, #bf8ce9, #f47474), 
+      url(../imgs/image.svg); 
+
+      background: rgb(143,137,255);
+      background: linear-gradient(90deg, rgba(143,137,255,1) 0%, rgba(255,140,140,1) 68%, rgba(255,175,84,1) 100%),url(../imgs/image.svg); ;
+}
+.hero {
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Roboto Condensed', sans-serif;
+}
+.hero-text {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    color: #fffff0;
+}
+.margin4 {
+    padding-right: 25vw;
+    padding-left: auto;
+}
+.experience {
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Roboto Condensed', sans-serif;
+    background-image: url(../imgs/triangle.png);
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+.white-bar {
+    width: 100vw;
+    height: 50px;
+    background-color: #fffff0;
+}
+.ms-10 {
+    margin-left: 100px;
+}
+.big-font {
+    font-size: 100px;
+    font-weight: 700;
+}
+.medium-font {
+    font-size: 50px;
+    font-weight: 400;
+    font-style: italic;
+}
