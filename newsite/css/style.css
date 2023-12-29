@@ -57,5 +57,29 @@ html, body {
 .medium-font {
     font-size: 50px;
     font-weight: 400;
+}
+.italic {
     font-style: italic;
 }
+.social-icons{
+
+}
+.social-icons .social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 3.5rem;
+    width: 3.5rem;
+    color: #fffff0;
+    font-size: 2rem;
+    margin-right: 0.5rem;
+    transition-duration: 0.5s;
+}
+
+.social-icons .social-icon:last-child {
+    margin-right: 0;
+}
+
+.social-icon:hover {
+    transform: translateY(-3px) rotate(360deg); /* Pop-up and spin */
+  }
