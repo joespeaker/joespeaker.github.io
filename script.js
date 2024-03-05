@@ -35,3 +35,14 @@ function typeWriter(textArray, arrayIndex, charIndex, speed, deleteMode) {
 
 var typingSpeed = 100; // in milliseconds
 typeWriter(text, 0, 0, typingSpeed, false);
+
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var menuButton = document.getElementById("menu-button");
+            var menuLinks = document.getElementById("menu-links");
+
+            menuButton.addEventListener("click", function () {
+                menuLinks.classList.toggle("visible");
+            });
+        });

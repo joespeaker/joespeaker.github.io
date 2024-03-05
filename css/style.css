@@ -67,6 +67,46 @@ html, body {
 .ms-10 {
     margin-left: 100px;
 }
+@media screen and (max-width: 600px) {
+    .ms-10 {
+        margin-left: 10px;
+    }
+    .max-w-xs {
+        display: none;
+    }
+    .px-20 {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    .text-7xl {
+        font-size: 3rem;
+    }
+    .big-font {
+        font-size: 50px !important;
+    }
+    .medium-font {
+        font-size: 30px !important;
+    }
+    .small-nav {
+        display: inline !important;
+    }
+    .big-nav {
+        display: none;
+    }
+    .navbar {
+        transition: max-height 0.3s ease-in-out;
+        max-height: 0;
+        overflow: hidden;
+        margin-top: 15px; /* Adjust this value as needed */
+    }
+
+    .navbar.visible {
+        max-height: calc(100vh - 50px); /* Adjust this value as needed */
+    }
+}
+.small-nav {
+    display: none;
+}
 .big-font {
     font-size: 100px;
     font-weight: 700;
@@ -206,3 +246,4 @@ code {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
