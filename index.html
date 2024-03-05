@@ -1,275 +1,518 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-    <meta property="og:description" content="A senior at Benedictine College, I have skills that are well developed for transforming data into profitable business decisions."/>
-    <meta name="description" content="A senior at Benedictine College, I have skills that are well developed for transforming data into profitable business decisions."/>
-    <meta name="author" content="Joe Bieker"/>
-    <meta property="og:image" content="assets/img/profile.jpg"/> 
-    <meta name="image" content="assets/img/profile.jpg"/> 
-    <title>Joseph Bieker | Data Analyst & Web Developer</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/img/favicon.png"/>
-    <!-- Font Awesome icons (free version)-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Welcome to joebieker.com, home of all things about Joe Bieker...">
+    <meta name="keywords" content="Joe Bieker, personal website, experience, education, projects, certifications, contact, joebieker, joe bieker, jspeaker">
+    <meta name="author" content="Joe Bieker">
+    <link rel="icon" type="image/x-icon" href="imgs/favicon.png">
+    <title>Joe Bieker | Web Developer & Data Analyst</title>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300&family=Roboto+Condensed:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">  
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/output.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Saira+Extra+Condensed:500,700" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Muli:400,400i,800,800i" rel="stylesheet" type="text/css" />
-
-    <!-- jQuery script-->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="css/styles.css" rel="stylesheet"/>
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-JDQKB8TRSR"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-JDQKB8TRSR');
-</script>
 </head>
-
-<body id="page-top" class="">
-    <!-- Navigation-->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
-        <a class="navbar-brand js-scroll-trigger" href="#page-top">
-            <span class="d-block d-lg-none">Joseph Bieker</span>
-            <span class="d-none d-lg-block"><img class="img-fluid img-profile rounded-circle mx-auto mb-2" src="assets/img/profile.jpg" alt="joe bieker profile picture" /></span>
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-        <div class="collapse navbar-collapse" id="navbarResponsive">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link js-scroll-trigger no" href="#about">About</a></li>
-                <li class="nav-item"><a class="nav-link js-scroll-trigger no" href="#experience">Experience</a></li>
-                <li class="nav-item"><a class="nav-link js-scroll-trigger no" href="#education">Education</a></li>
-                <li class="nav-item"><a class="nav-link js-scroll-trigger no" href="#skills">Skills</a></li>
-                <li class="nav-item"><a class="nav-link js-scroll-trigger no" href="#interests">Projects</a></li>
-                <li class="nav-item"><a class="nav-link js-scroll-trigger no" href="#awards">Certifications</a></li>
-                <li class="nav-item"><a class="nav-link no" type="submit" onclick="window.open('joeBiekerResume.pdf')">Download My Resume</a></li>
-                <div class="nav-item color-dark" onclick=darkMode()>DARK MODE</div>
-            </ul>
-        </div>
+<body class="bg-gray-950">
+    <nav class="bg-transparent fixed right-3 h-screen flex justify-end mt-auto mb-auto">
+        <ul class="navbar flex flex-col justify-center h-screen text-right text-white font-semibold text-xl">
+            <li class="">
+                <a class="" href="#home">Home</a>
+            </li>
+            <li class="">
+                <a class="" href="#experience">Experience</a>
+            </li>
+            <li class="">
+                <a class="" href="#education">Education</a>
+            </li>
+            <li class="">
+                <a class="" href="#projects">Projects</a>
+            </li>
+            <li class="">
+                <a class="" href="#certifications">Certifications</a>
+            </li>
+            <li class="">
+                <a class="" href="#contact">References</a>
+            </li>
+            <li class="">
+                <a class="" href="#contact">Contact</a>
+            </li>
+        </ul>
     </nav>
-    <!-- Page Content-->
-    <div class="content1" id="switch">
-    </div>
-    <div class="container-fluid p-0">
-        <!-- About-->
-        <section class="resume-section teg" id="about">
-            <div class="resume-section-content">
-                <h1 class="mb-0">
-                    Joseph
-                    <span class="text-primary">Bieker</span>
-                </h1>
-                <div class="subheading mb-5">
-                   <p>Lincoln, NE - Kansas City, MO Areas ·
-                    <a href="tel:+14022457857" class="underline">(402)245-7857</a> · <a class="underline" href="mailto:joebieker2486@outlook.com">joebieker2486@outlook.com</a></p>
-                </div>
-                <p class="lead mb-2">Graduated with a degree in Computer Science. I have a passion for data analytics and web development. I am currently looking for a full-time position in the Kansas City area.</p>
-                </p>
-                <div class="social-icons">
-                    <a class="social-icon" href="https://www.linkedin.com/in/joseph-bieker/" target="new"><i class="fab fa-linkedin-in"></i></a>
-                    <a class="social-icon" href="https://github.com/joespeaker" target="new"><i class="fab fa-github"></i></a>
-                    <a class="social-icon" href="https://www.instagram.com/joe.speaker/" target="new"><i class="fab fa-instagram"></i></a>
-                    <a class="social-icon" href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX" target="new"><i class="fab fa-spotify"></i></a>
+    
+    
+    
+    
+    
+    
 
+<div id="home" class="conatiner-fluid ">
+    <div class="row hero noise">
+        <div class="col-sm-12 col-md-12 col-lg-12">
+            <div class="ms-10">
+                <div class="hero-text">
+                    <h1 class="big-font">I'm Joe Bieker</h1>
+                    <h5 class="medium-font italic">I'm a <span id="typedText"></span></h5>
+                    <div class="social-icons">
+                        <a class="social-icon" href="https://www.linkedin.com/in/joseph-bieker/" target="new"><i class="fab fa-linkedin-in"></i></a>
+                        <a class="social-icon" href="https://github.com/joespeaker" target="new"><i class="fab fa-github"></i></a>
+                        <a class="social-icon" href="https://www.instagram.com/joe.speaker/" target="new"><i class="fab fa-instagram"></i></a>
+                        <a class="social-icon" href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX" target="new"><i class="fab fa-spotify"></i></a>
+                    </div>
                 </div>
+                
             </div>
-        </section>
-        <hr class="m-0" />
-        <!-- Experience-->
-        <section class="resume-section tag" id="experience">
-            <div class="resume-section-content">
-                <h2 class="mb-5">Experience</h2>
-                <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
-                    <div class="flex-grow-1">
-                        <h3 class="mb-0">Data Engineering Intern</h3>
-                        <div class="subheading mb-3">
-                            <a class="underline" href="https://playfairdata.com" target="new">Playfair Data</a>
-                        </div>
-                        <ul>
-                            <li>Worked with teammates to develop solutions to data pipeline problems for a Playfair Data Swift</li>
-                            <li>Learned softwares such as Tableau Prep, Alteryx, Google BigQuery and Google Analytics 4</li>
-                            <li>Developed a MVP web portal using the Python flask package and Tableau's Rest API in the last 3 weeks</li>
-                            <li>Met with individuals from each team to understand each process of the project better</li>
-                            <li>QA'd the data and wrote documentation on the connection process for the data</li>
+        </div>
+    </div>
+    <div class="text-center  p-5">
+        <h1 class="text-7xl font-semibold bg-gradient-to-b from-pink-400 to-blue-400 bg-clip-text text-transparent tracking-wide">Experience</h1>
+    </div>
+    
+    
+    <div id="experience" class="work-history">
+        <!-- Playfair Data -->
+        <div class=" px-20 flex flex-wrap justify-left">
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <img class="w-full max-w-xs" src="imgs/pd-logo.png" alt="Playfair Data Logo">
+            </div>
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <div class="px-6 py-4">
+                    <div class="font-semibold text-3xl mb-2 text-gray-50 playfair">Data Engineering Intern</div>
+                    <div class="font-light text-md mb-2 text-gray-300"><a href="https://playfairdata.com/" class="history-link">Playfair Data</a> | Jun 2023 - Aug 2023 · 3 mos</div>
+                    <p class="text-gray-50">
+                        <ul class="list-disc ml-3 mr-3 text-gray-50">
+                            <li class="mt-2 mb-2">Worked with teammates to develop solutions to data pipeline problems</li>
+                            <li class="mt-2 mb-2">Built a Tableau Prep Flow to engineer the datasets</li>
+                            <li class="mt-2 mb-2">Used Alteryx to create a white label dataset</li>
+                            <li class="mt-2 mb-2">Developed a MVP web portal using the Python flask package and Tableau's Rest API</li>
+                            <li class="mt-2 mb-2">Learned softwares such as Tableau Prep, Alteryx, Google BigQuery and Google Analytics 4</li>
+                            <li class="mt-2 mb-2">Met with individuals from each team to understand each process of the project better</li>
+                            <li class="mt-2 mb-2">QA'd the data and wrote documentation on the connection process for the data</li>
                         </ul>
-                    </div>
-                    <div class="flex-shrink-0"><span class="text-primary">June 2023 - August 2023</span></div>
-                </div>
-                <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
-                    <div class="flex-grow-1">
-                        <h3 class="mb-0">Helphub Specialist</h3>
-                        <div class="subheading mb-3">
-                            <a class="underline" href="https://podiumeducation.com" target="new">Podium Education</a>
-                        </div>
-                        <p>Helped students learn and understand concepts relating to data analytics, web development and digital marketing; all while keeping an average support rating of 97.5% in over 800 conversations. I also worked with the video production team and helped
-                            manage their video database. Built a Google Chrome extension called <a href="https://github.com/joespeaker/chromeExtension">WhosIn?</a> that used the <a href="https://www.airtable.com">Airtable API</a> to fetch who was currently working.</p>
-                    </div>
-                    <div class="flex-shrink-0"><span class="text-primary">May 2021 - Present</span></div>
-                </div>
-                <div class="d-flex flex-column flex-md-row justify-content-between mb-5 ">
-                    <div class="flex-grow-1 ">
-                        <h3 class="mb-0 ">Contract Web Developer</h3>
-                        <div class="subheading mb-3 ">
-                            <a class="underline"  href="https://www.qedwealthsolutions.com" target="new">QED Wealth Solutions</a>
-                        </div>
-                        <p>Built the entirety of www.qedwealthsolutions.com from scratch. This was built using HTML, CSS, Javascript and Bootstrap as my framework. The site is hosted on <a href="https://aws.amazon.com/amplify/">AWS Amplify</a> and updates on every Github commit. I took measures to improve Search Engine Optimization on the site including using keywords, creating files for search engine scraping, and proper formatting on all pages. This project took a couple months of building and a month of communicating with the client about any fine tuning or extra features.</p>
-                        <p>While the contract has offically ended, I still remain in touch with the client and help update things as neccessary.</p>
-                    </div>
-                    <div class="flex-shrink-0 "><span class="text-primary ">August 2022 - December 2022</span></div>
+                    </p>
+                    <div class="text-gray-50">Skills: Data Engineering · Data Quality Assurance · Communication · Problem Solving · Asana · Google Analytics 4 · Agile Methodologies · HTML5 · Tableau</div>
                 </div>
             </div>
-        </section>
-        <hr class="m-0 " />
-        <!-- Education-->
-        <section class="resume-section tag" id="education">
-            <div class="resume-section-content ">
-                <h2 class="mb-5 ">Education</h2>
-                <div class="d-flex flex-column flex-md-row justify-content-between mb-5 ">
-                    <div class="flex-grow-1 ">
-                        <h3 class="mb-0"><a class="kinda" href="https://benedictine.edu">Benedictine College</a></h3>
-                        <div class="subheading mb-3 ">Atchison, KS</div>
-                        <div>Computer Science</div>
-                        <p>Graduation: 2023</p>
-                    </div>
-                    <div class="flex-shrink-0 "><span class="text-primary ">August 2018 - Present</span></div>
-                </div>
-                <div class="d-flex flex-column flex-md-row justify-content-between ">
-                    <div class="flex-grow-1 ">
-                        <h3 class="mb-0"><a class="kinda" href="https://fcsacredheart.org/">Falls City Sacred Heart High School</a></h3>
-                        <div class="subheading mb-3 ">Falls City, NE</div>
-                        <p>Graduation: 2018</p>
-                    </div>
-                    <div class="flex-shrink-0 "><span class="text-primary ">August 2014 - May 2018</span></div>
+        </div>
+    
+        <!-- Benedictine College -->
+        <div class=" px-20 flex flex-wrap justify-left">
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <img class="w-full max-w-xs rounded-2xl" src="imgs/bc_logo.png" alt="Benedictine College Logo">
+            </div>
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <div class="px-6 py-4">
+                    <div class="font-semibold text-3xl mb-2 text-gray-50 playfair">Campus Activities Board Member</div>
+                    <div class="font-light text-md mb-2 text-gray-300"><a href="https://benedictine.edu/" class="history-link">Benedictine College</a> | Aug 2022 - May 2023 · 10 mos</div>
+                    <p class="text-gray-50">
+                        <ul class="list-disc ml-3 mr-3 text-gray-50">
+                            <li class="mt-2 mb-2">Collaboratively upheld and revitalized the traditions of Benedictine College throughout the 2022-2023 academic term</li>
+                            <li class="mt-2 mb-2">Assumed a leadership role in a compact team to strategize and execute the SpringFest tradition</li>
+                            <li class="mt-2 mb-2">Communicated with artists and management entities for a performance in Atchison</li>
+                            <li class="mt-2 mb-2">Demonstrated collaboration by offering assistance during co-team events</li>
+                        </ul>
+                    </p>
+                    <div class="text-gray-50">Skills: Teamwork · Leadership · Communication</div>
                 </div>
             </div>
-        </section>
-        <hr class="m-0 " />
-        <!-- Skills-->
-        <section class="resume-section tag" id="skills">
-            <div class="resume-section-content ">
-                <h2 class="mb-5 ">Skills</h2>
-                <ul class="fa-ul mb-0 ">
-                    <li>Python</li>
-                    <li>Pandas</li>
-                    <li>NumPy</li>
-                    <li>Plotly</li>
-                    <li>Flask</li>
-                    <li>Django</li>
-                    <li>MySQL</li>
-                    <li>Tableau</li>
-                    <li>Tableau Prep</li>
-                    <li>Alteryx</li>
-                    <li>Asana</li>
-                    <li>Data Analytics</li>
-                    <li>Data Engineering</li>
-                    <li>Google Analytics 4</li>
-                    <li>Google BigQuery</li>
-                    <li>Web Development</li>
-                    <li>Microsoft Excel</li>
-                    <li>HTML5</li>
-                    <li>CSS3</li>
-                    <li>Javascript</li>
-                    <li>Bootstrap</li>
-                    <li>Github</li>
-                    <li>PHP</li>
-                    <li>Amazon Web Services</li>
-                    <li>Java</li>
-                    <li>C</li>
-                    <li>Learning Management Systems</li>
-                    <li>Slack</li>
-                    <li>Intercom</li>
-                    <li>Microsoft Office</li>
-                    <li>Google Suite</li>
-                    <li>Percussion (CMS)</li>
-                    <li>Communication</li>
-                    <li>Leadership</li>
-                    <li>Teamwork</li>
-                    <li>Time Management</li>
-                    <li>Problem Solving</li>
-                    <li>Attention to Detail</li>
-                    <li>Flexibility</li>
-                </ul>
+        </div>
+    
+        <!-- Website Editor at Benedictine College -->
+        <div class="px-20 flex flex-wrap justify-left">
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <img class="w-full max-w-xs rounded-2xl" src="imgs/bc_logo.png" alt="Benedictine College Logo">
             </div>
-        </section>
-        <hr class="m-0 " />
-        <!-- Projects-->
-        <section class="resume-section tag" id="interests">
-            <div class="resume-section-content ">
-                <h2 class="mb-5 ">Projects</h2>
-                <!-- <div class="subheading mb-3">
-                    <a class="underline" href="https://docs.google.com/spreadsheets/d/1uOIdr6vJhX8Mr7p1YNbhgAjHrfS8KmSJdWY9U_NzHBg/edit?resourcekey#gid=380293484 " target="new ">
-                        UBBA Stats and Rankings
-                    </a>
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <div class="px-6 py-4">
+                    <div class="font-semibold text-3xl mb-2 text-gray-50 playfair">Website Editor</div>
+                    <div class="font-light text-md mb-2 text-gray-300"><a href="https://benedictine.edu/" class="history-link">Benedictine College</a> | Aug 2022 - Dec 2022 · 5 mos</div>
+                    <p class="text-gray-50">
+                        <ul class="list-disc ml-3 mr-3 text-gray-50">
+                            <li class="mt-2 mb-2">Helped update, manage, and maintain Benedictine College's website</li>
+                            <li class="mt-2 mb-2">Collaborated with the marketing team to ensure the website was up to date</li>
+                            <li class="mt-2 mb-2">Assisted in the creation of new web pages</li>
+                            <li class="mt-2 mb-2">Edit photos as needed for different marketing projects (i.e. school calendar)</li>
+                        </ul>
+                    </p>
+                    <div class="text-gray-50">Skills: Adobe Photoshop · HTML · Quality Assurance · Content Management Systems (CMS) · Communication · HTML5 · Front-End Development</div>
                 </div>
-                <p>
-                    This project contains a list of Benedictine College's Underground Benedictine Basketball Association's 2022 stats and rankings. Done completely on Google Sheets, this allowed teams to look up their own stats as well as their opponent's stats. This was
-                    updated regularly throughout the season by a Google Form submission which then autopopulated and updated the rankings accordingly.
-                </p> -->
-                <div class="subheading mb-3"><a class="underline" href="https://github.com/joespeaker/joespeaker.github.io" target="new">joebieker.com (github)</a></div>
-                <p>
-                    This website was built from a template and set up myself. I personalized it and added a few things (like a secret darkmode)! I host it on github and you can check out the code I used for the secret darkmode there! This website also uses Google Analytics to track how many people have visited and what links get the most clicks. 
-                </p>
-                <div class="subheading mb-3">Senior Capstone Project</div>
-                <p>
-                    My senior capstone project was creating an online version of Benedictine College's registrar forms. Some of these forms are a course drop/add form, major drop/add/change form, advisor change form, etc. My team and I decided to use Django to create the application and used Formstack to create the forms. The app will be hosted on the Benedictine College server and will be available to all students and faculty at Benedictine College. Part of this project was creating a simple form builder to expedite the form building process. You can find it <a class="underline" href="https://joebieker.com/formBuilder/" target="new">here</a>.
-                </p>
-                <div class="subheading mb-3"><a class="underline" href="https://qedwealthsolutions.com" target="new">QED Wealth Solutions</a></div>
-                <p>
-                    This is a website that I built from scratch for a client of mine. I built it from scratch using Bootstrap 5. And it is hosted on AWS Amplify. This was several months in the making and I still maintain the website as my client needs.
-                </p>
             </div>
-        </section>
-        <hr class="m-0 " />
-        <!-- Awards-->
-        <section class="resume-section tag" id="awards">
-            <div class="resume-section-content ">
-                <h2 class="mb-5 ">Certifications</h2>
-                <ul class="sized">
-                    <li>
-                        <a class="underline" href="https://www.credly.com/badges/90bed88f-7323-4a40-9b54-555bfa10798c/linked_in_profile" target="new">Alteryx Foundational Micro Certification | Alteryx</a>
-                    </li>
-                    <li>
-                        <a class="underline" href="https://www.credly.com/badges/8d451fb7-304d-498c-90b2-8fd20c250742/linked_in_profile" target="new">Data Engineering Practictioner | Playfair Data</a>
-                    </li>
-                    <li>
-                        <a class="underline" href="https://www.linkedin.com/learning/certificates/0f4b048a1899f82dd452dcbb6ff7c3b181a8cbaecab293b6f49149d9804d7f84" target="new">Machine Learning with Python: Foundations | LinkedIn Learning</a>
-                    </li>
-                    <li>
-                        <a class="underline" href="https://www.credential.net/9be89fd5-e51f-40a6-828e-98fb8ec5e30e" target="new">Applied Data Analytics - Excel Specialist | Benedictine College</a>
-                    </li>
-                    <li>
-                        <a class="underline" href="https://www.hackerrank.com/certificates/b114fb6b72ee" target="new">SQL (Intermediate) | HackerRank</a>
-                    </li>
-                    <li>
-                        <a class="underline" href="https://www.hackerrank.com/certificates/1adf7a422a2d" target="new">SQL (Basic) | HackerRank</a>
-                    </li>
-                    <li>
-                        <a class="underline" href="https://www.hackerrank.com/certificates/e5d365873066" target="new">Python (Basic) | HackerRank</a>
-                    </li>
-                    <li>
-                        <a class="underline" href="https://www.hackerrank.com/certificates/a7022653b485" target="new">Java (Basic) | HackerRank</a>
-                    </li>
-                    <li>
-                        <a class="underline" href="https://www.hackerrank.com/certificates/7a82bd7327cf" target="new">Javascript (Basic) | HackerRank</a>
-                    </li>
-                    <li>
-                        <a class="underline" href="https://credentials.intercom.com/de69fdea-ea80-4fc7-89d9-6cd5edeca9fd" target="new">Customer Service | Intercom</a>
-                    </li>
-
-                </ul>
+        </div>
+    
+        <!-- HelpHub Specialist at Podium Education -->
+        <div class="px-20 flex flex-wrap justify-left">
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <img class="w-full max-w-xs rounded-full" src="imgs/pe-logo.png" alt="Podium Education Logo">
             </div>
-        </section>
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <div class="px-6 py-4">
+                    <div class="font-semibold text-3xl mb-2 text-gray-50 playfair">HelpHub Specialist</div>
+                    <div class="font-light text-md mb-2 text-gray-300"><a href="https://podiumeducation.com/" class="history-link">Podium Education</a> | Oct 2021 - May 2023 · 1 yr 8 mos</div>
+                    <p class="text-gray-50">
+                        <ul class="list-disc ml-3 mr-3 text-gray-50">
+                            <li class="mt-2 mb-2">Provided tutoring in data analytics, web development, and digital marketing, maintaining a support rating of 96% across 900+ interactions</li>
+                            <li class="mt-2 mb-2">Collaborated with the video production team, contributing to the organization and management of their extensive video database</li>
+                        </ul>
+                    </p>
+                    <div class="text-gray-50">Skills: SQL · NumPy · Data Analysis · Bootstrap · Python (Programming Language) · Web Development · Shopify · Microsoft Excel · HTML5 · JavaScript · Tableau</div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Data Analyst Intern at Greenfield Growth Partners, LLC -->
+        <div class="px-20 flex flex-wrap justify-left">
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <img class="rounded-full max-w-xs w-96" src="imgs/gfgp_logo.jpeg" alt="Greenfield Growth Partners, LLC Logo">
+            </div>
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <div class="px-6 py-4">
+                    <div class="font-semibold text-3xl mb-2 text-gray-50 playfair">Data Analyst Intern</div>
+                    <div class="font-light text-md mb-2 text-gray-300"><a href="https://www.greenfieldgrowthpartners.com/" class="history-link">Greenfield Growth Partners, LLC</a> | Nov 2022 - Feb 2023 · 4 mos</div>
+                    <p class="text-gray-50">
+                        <ul class="list-disc ml-3 mr-3 text-gray-50">
+                            <li class="mt-2 mb-2">Spearheaded a project utilizing Microsoft Power Apps</li>
+                            <li class="mt-2 mb-2">Developed a sophisticated Minimum Viable Product (MVP)</li>
+                            <li class="mt-2 mb-2">Implemented a streamlined process for property information submission</li>
+                            <li class="mt-2 mb-2">Established a data repository within a SharePoint List</li>
+                            <li class="mt-2 mb-2">Used Power Automate to send emails upon submission</li>
+                        </ul>
+                    </p>
+                    <div class="text-gray-50">Skills: Microsoft Power Automate · Problem Solving · SharePoint</div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Web Developer at QED Wealth Solutions -->
+        <div class="px-20 flex flex-wrap justify-left">
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <img class="w-full max-w-xs py-4" src="imgs/qed-logo.png" alt="QED Wealth Solutions Logo">
+            </div>
+            <div class="m-2 flex flex-col items-start"> <!-- Added items-start -->
+                <div class="px-6 py-4">
+                    <div class="font-semibold text-3xl mb-2 text-gray-50 playfair">Web Developer</div>
+                    <div class="font-light text-md mb-2 text-gray-300"><a href="https://www.qedwealthsolutions.com" class="history-link">QED Wealth Solutions</a> | Nov 2022 - Jan 2023 · 3 mos (as needed)</div>
+                    <p class="text-gray-50">
+                        <ul class="list-disc ml-3 mr-3 text-gray-50">
+                            <li class="mt-2 mb-2">Created www.qedwealthsolutions.com from scratch using the Bootstrap framework</li>
+                            <li class="mt-2 mb-2">Engaged with the client regularly to address any issues or concerns</li>
+                        </ul>
+                    </p>
+                    <div class="text-gray-50">Skills: Amazon Web Services (AWS) · HTML · Bootstrap · Web Development · HTML5 · Cascading Style Sheets (CSS) · Front-End Development · JavaScript</div>
+                </div>
+            </div>
+        </div>
+    
+        
     </div>
-    <!-- Bootstrap core JS-->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js "></script>
-    <!-- Core theme JS-->
-    <script src="js/scripts.js "></script>
-</body>
+    <div>
+    </div>
 
+
+    <div id="education" class="education  text-gray-50">
+        <div class="text-center py-10">
+            <h1 class="text-7xl font-semibold bg-gradient-to-b from-pink-400 to-blue-400 bg-clip-text text-transparent tracking-wide">Education</h1>
+        </div>
+        <div class="ms-10">
+            <div class="w-full p-6 m-4">
+                <div class="mb-4">
+                    <p class="text-5xl font-semibold tracking-wide"><a href="https://benedictine.edu/" class="education-link">Benedictine College</a></p>
+                    <p class="text-xl">Aug 2018 - May 2023</p>
+                </div>
+                <div class="mb-4">
+                    <p class="text-2xl">Major: Computer Science</p>
+                </div>
+                <div>
+                    <p class="text-lg font-normal mb-1">Extra-curriculars:</p>
+                    <ul class="list-disc font-extralight pl-4">
+                        <li>Track</li>
+                        <li>Student Government</li>
+                        <li>Campus Activities Board</li>
+                        <li>Disc Golf Club President</li>
+                        <li>Bible Study</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="ms-10">
+            <div class="w-full p-6 m-4">
+                <div class="mb-4">
+                    <p class="text-5xl font-semibold tracking-wide"><a href="https://fcsacredheart.org/" class="education-link">Falls City Sacred Heart</a></p>
+                    <p class="text-xl">Aug 2014 - May 2018</p>
+                </div>
+                <div class="mb-4">
+                    <p class="text-2xl">GPA: 3.99</p>
+                </div>
+                <div>
+                    <p class="text-lg font-normal mb-1">Extra-curriculars:</p>
+                    <ul class="list-disc font-extralight text-sm pl-4">
+                        <li>Student Council</li>
+                        <li>National Honor Society</li>
+                        <li>Band</li>
+                        <li>Choir</li>
+                        <li>Youth Group</li>
+                        <li>Football</li>
+                        <li>Basketball</li>
+                        <li>Track</li>
+                        <li>One Act</li>
+                        <li>Speech</li>
+                        <li>Helping Hands</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="projects" class="projects  text-gray-50">
+        <div class="text-center py-10">
+            <h1 class="text-7xl font-semibold bg-gradient-to-b from-pink-400 to-blue-400 bg-clip-text text-transparent tracking-wide">Projects</h1>
+        </div>
+        <div class="ms-10">
+            <div class="w-full p-6 m-4">
+                <div class="mb-4">
+                    <p class="text-5xl font-semibold tracking-wide"><a href="https://github.com/joespeaker/flask-app" class="projects-link">SloVerb</a></p>
+                    <!-- Description -->
+                    <h3 class="text-xl font-semibold mb-2 mt-6">Overview</h3>
+        <p class="font-light">SloVerb allows users to paste a YouTube link to a song and adjust three parameters:</p>
+
+        <h3 class="text-xl font-semibold mb-2 mt-4">Features</h3>
+        <ul class="list-disc pl-8 font-light">
+            <li>User Interface: Simple and Intuitive UI allows users to immediateatly understand the web app</li>
+            <li>Dark Mode: Toggle between light and dark modes for extra customization</li>
+            <li>Slider Controls: Allow fine adjustments to the output file</li>
+            <li>Submission: Submit the form to process data and generate your file</li>
+        </ul>
+
+        <h3 class="text-xl font-semibold mb-2 mt-4">Installation</h3>
+        <ol class="list-decimal pl-8 font-light">
+            <li>Clone this repository to your local machine.</li>
+            <li>Install required dependencies using <code>pip install -r requirements.txt</code>.</li>
+            <li>Run <code>python app.py</code> to start the Flask application.</li>
+            <li>Open your web browser and go to <code>http://localhost:5000</code> to access the SloVerb app.</li>
+        </ol>
+        <h3 class="text-xl font-semibold mb-2 mt-4">Technologies</h3>
+        <ul class="list-disc pl-8 font-light">
+            <li>Python</li>
+            <li>Flask</li>
+            <li>HTML</li>
+            <li>CSS</li>
+            <li>JavaScript</li>
+        </ul>
+                </div>
+            </div>
+        </div>
+        <div class="ms-10">
+            <div class="w-full p-6 m-4">
+                <div class="mb-4">
+                    <p class="text-5xl font-semibold tracking-wide"><a href="https://github.com/joespeaker/shorts-automation/tree/main/shorts" class="projects-link">YouTube Shorts Automation</a></p>
+                    <!-- Description -->
+                    <h3 class="text-xl font-semibold mb-2 mt-6">Overview</h3>
+                    <p class="font-light">Parkour Shorts is a Python script that generates short video clips with parkour footage, adds branding elements, and creates a final compilation video. It generates videos similar to <a class="link" href="https://www.youtube.com/shorts/DxqOb8tFIsY">this</a>.</p>
+        
+                    <h3 class="text-xl font-semibold mb-2 mt-4">Features</h3>
+                    <ul class="list-disc pl-8 font-light">
+                        <li>Simple and Intuitive UI allows users to immediately understand the web app</li>
+                        <li>Toggle between light and dark modes for extra customization</li>
+                        <li>Slider controls for fine adjustments to the output file</li>
+                        <li>Submission feature to process data and generate the final video</li>
+                    </ul>
+        
+                    <h3 class="text-xl font-semibold mb-2 mt-4">Installation</h3>
+                    <ol class="list-decimal pl-8 font-light">
+                        <li>Clone the repository to your local machine.</li>
+                        <li>Install required dependencies using <code>pip install -r requirements.txt</code>.</li>
+                        <li>Run <code>python parkour.py</code> to execute the script.</li>
+                        <li>Access the generated short video as <code>shorts.mp4</code>.</li>
+                    </ol>
+                    <h3 class="text-xl font-semibold mb-2 mt-4">Technologies</h3>
+                    <ul class="list-disc pl-8 font-light">
+                        <li>Python</li>
+                        <li>moviepy</li>
+                        <li>PIL (Python Imaging Library)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="ms-10">
+            <div class="w-full p-6 m-4">
+                <div class="mb-4">
+                    <p class="text-5xl font-semibold tracking-wide"><a href="https://joebieker.com/cropcircle.us" class="projects-link">CropCircle.us</a></p>
+                    <!-- Description -->
+                    <h3 class="text-xl font-semibold mb-2 mt-6">Overview</h3>
+                    <p class="font-light">CropCircle.us is a website offering affordable and American-made plant protectors. It features an intuitive interface and products for plant enthusiasts.</p>
+        
+                    <h3 class="text-xl font-semibold mb-2 mt-4">Features</h3>
+                    <ul class="list-disc pl-8 font-light">
+                        <li>Simple and intuitive navigation</li>
+                        <li>Diverse range of plant protection products</li>
+                        <li>Responsive design for seamless browsing on all devices</li>
+                        <li>Secure checkout process for online purchases</li>
+                    </ul>
+        
+                    <h3 class="text-xl font-semibold mb-2 mt-4">Technologies</h3>
+                    <ul class="list-disc pl-8 font-light">
+                        <li>HTML</li>
+                        <li>CSS</li>
+                        <li>JavaScript</li>
+                        <li>Bootstrap</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="certifications" class="certifications  text-gray-50">
+            <div class="text-center py-10">
+                <h1 class="text-7xl font-semibold bg-gradient-to-b from-pink-400 to-blue-400 bg-clip-text text-transparent tracking-wide">Certifications</h1>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-4 m-4">
+                    <div class="mb-0">
+                        <p class="text-3xl font-semibold tracking-wide"><a href="https://skillshop.exceedlms.com/profiles/ed8d750ed5af4b2b9900696eb126e7c8" class="certifications-link">Google Analytics Individual Qualification</a></p>
+                        <p class="text-lg font-extralight">Issued by Google | Nov 2023</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-4 m-4">
+                    <div class="mb-0">
+                        <p class="text-3xl font-semibold tracking-wide"><a href="https://www.credly.com/badges/90bed88f-7323-4a40-9b54-555bfa10798c/linked_in_profile" class="certifications-link">Alteryx Foundational Micro-Credential</a></p>
+                        <p class="text-lg font-extralight">Issued by Alteryx | July 2023</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-4 m-4">
+                    <div class="mb-0">
+                        <p class="text-3xl font-semibold tracking-wide"><a href="https://www.credly.com/badges/8d451fb7-304d-498c-90b2-8fd20c250742/linked_in_profile" class="certifications-link">Data Engineering Practitioner</a></p>
+                        <p class="text-lg font-extralight">Issued by Playfair Data | July 2023</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-4 m-4">
+                    <div class="mb-0">
+                        <p class="text-3xl font-semibold tracking-wide"><a href="https://www.linkedin.com/learning/certificates/0f4b048a1899f82dd452dcbb6ff7c3b181a8cbaecab293b6f49149d9804d7f84" class="certifications-link">Machine Learning with Python: Foundations</a></p>
+                        <p class="text-lg font-extralight">Issued by LinkedIn | Apr 2023</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-4 m-4">
+                    <div class="mb-0">
+                        <p class="text-3xl font-semibold tracking-wide"><a href="https://www.hackerrank.com/certificates/b114fb6b72ee" class="certifications-link">SQL (Intermediate)</a></p>
+                        <p class="text-lg font-extralight">Issued by HackerRank | Apr 2022</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-4 m-4">
+                    <div class="mb-0">
+                        <p class="text-3xl font-semibold tracking-wide"><a href="https://www.hackerrank.com/certificates/7a82bd7327cf" class="certifications-link">JavaScript (Basic)</a></p>
+                        <p class="text-lg font-extralight">Issued by HackerRank | Feb 2022</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-4 m-4">
+                    <div class="mb-0">
+                        <p class="text-3xl font-semibold tracking-wide"><a href="https://credentials.intercom.com/de69fdea-ea80-4fc7-89d9-6cd5edeca9fd" class="certifications-link">Intercom: Customer Service</a></p>
+                        <p class="text-lg font-extralight">Issued by Intercom | Nov 2021</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-4 m-4">
+                    <div class="mb-0">
+                        <p class="text-3xl font-semibold tracking-wide"><a href="https://www.hackerrank.com/certificates/e5d365873066" class="certifications-link">Python (Basic)</a></p>
+                        <p class="text-lg font-extralight">Issued by HackerRank | Nov 2021</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-4 m-4">
+                    <div class="mb-0">
+                        <p class="text-3xl font-semibold tracking-wide"><a href="https://www.hackerrank.com/certificates/a7022653b485" class="certifications-link">Java (Basic)</a></p>
+                        <p class="text-lg font-extralight">Issued by HackerRank | Apr 2021</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-4 m-4">
+                    <div class="mb-0">
+                        <p class="text-3xl font-semibold tracking-wide"><a href="https://www.credential.net/9be89fd5-e51f-40a6-828e-98fb8ec5e30e" class="certifications-link">Applied Data Analytics - Excel Specialist</a></p>
+                        <p class="text-lg font-extralight">Issued by Benedictine College | May 2020</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section >
+            <div id="references" class="text-center py-10">
+                <h1 class="text-7xl font-semibold bg-gradient-to-b from-pink-400 to-blue-400 bg-clip-text text-transparent tracking-wide">References</h1>
+            </div>
+
+            <div class="ms-10">
+                <div class="w-full p-6 m-4">
+                    <div class="mb-4">
+                        <p class="text-5xl font-semibold tracking-wide mb-4"><a href="https://www.linkedin.com/in/arianacukier" class="link">Ariana Cukier, MSHI</a></p>
+                        <p class="text-xl font-light">Associate Director, Data Engineering</p>
+                        <p class="text-xl mb-2 font-extralight">Playfair Data</p>
+                        <p class="text-md font-light w-3/4">Joe was an intern on my Data Engineering team at Playfair Data - he tackled the backend data of our Google Analytics 4 dashboard. Though the GA4 API threw many limitations our way, Joe was very flexible and dove right into the GA4 data and documentation to understand the API. His strength in technical aptitude can really be seen in his work and his ability to grasp new tools and projects very quickly. During his time with us, he learned Tableau Prep and even spent some time in Google Big Query. Overall, it was a pleasure to have Joe on our team!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-6 m-4">
+                    <div class="mb-4">
+                        <p class="text-5xl font-semibold tracking-wide mb-4"><a href="https://www.linkedin.com/in/amy-sparent/" class="link">Amy Sparent</a></p>
+                        <p class="text-xl font-light">Academic Operations Manager</p>
+                        <p class="text-xl mb-2 font-extralight">Podium Education</p>
+                        <p class="text-md font-light w-3/4">Joe is super adaptable and dedicated to furthering his knowledge and growth. I enjoyed working with Joe in Podium Education's support and tutoring chatbot for roughly two years. Throughout the two years, we worked alongside each other on numerous occasions, and each time, I witnessed Joe approach each conversation diligently and thoughtfully. Undoubtedly, he helped thousands of students, mainly in Excel, Tableau, HTML, CSS, and JavaScript. He was knowledgeable in every instance that he helped a student and made a huge impact. 
+                            <br>
+                            <br>
+                            I genuinely admire Joe's adaptability. During his time at Podium Education, the curriculum and protocols underwent many phases, and he quickly adjusted to those changing circumstances. He often wanted to go the extra mile and learn new material, not only to improve his skills but to further the impact he could make on the students Podium served. His humor and liveliness in our weekly meetings were also much appreciated! 
+                            <br>
+                            <br>
+                            Joe is a solid asset to any team. I recommend him if you are looking for someone committed and flexible with excellent knowledge in his areas of expertise.</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <div id="contact" class="contact  text-gray-50">
+            <div class="text-center py-10">
+                <h1 class="text-7xl font-semibold bg-gradient-to-b from-pink-400 to-blue-400 bg-clip-text text-transparent tracking-wide">Contact</h1>
+            </div>
+            <div class="ms-10">
+                <div class="w-full p-6 m-4">
+                    <div class="mb-4">
+                        <p class="text-5xl font-semibold tracking-wide mb-4">Joe Bieker</p>
+                        <p class="text-xl">Email: <a href="mailto:joebieker2486@outlook.com" class="link">joebieker2486@outlook.com</a></p>
+                        <p class="text-xl">Phone: <a href="tel:402-245-7857" class="link">402-245-7857</a></p>
+                        <br>
+                        <p class="text-2xl font-light">Download my resume <a href="Joe Bieker - Resume.pdf" class="link">here</a>.</p>
+                    </div>
+                    <p class="text-2xl font-light">Feel free to reach out to me with any questions or opportunities!</p>
+                </div>
+            </div>
+            
+        
+    
+      
+        
+        
+
+    
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src = "script.js"></script>
+</body>
 </html>
