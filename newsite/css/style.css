@@ -1,21 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Your custom styles go here */
+
+
 html, body {
     margin: 0;
     padding: 0;
     width: 100%;
     overflow-x: hidden;
+    scroll-behavior: smooth;
 }
+/* Hide scrollbar for Chrome, Safari and Opera */
+.example::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .example {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
 
 /* div {
     border: #fff solid 1px;
 } */
 .noise {
-    background: 
-      linear-gradient(20deg, #bf8ce9, #f47474), 
-      url(../imgs/image.svg); 
-
-      background: rgb(143,137,255);
-      background: linear-gradient(90deg, rgba(143,137,255,1) 0%, rgba(255,140,140,1) 68%, rgba(255,175,84,1) 100%),url(../imgs/image.svg); ;
+    background-image: url(../imgs/Gradient.webp);
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
 }
+
 .hero {
     width: 100vw;
     height: 100vh;
@@ -61,8 +78,9 @@ html, body {
 .italic {
     font-style: italic;
 }
-.social-icons{
 
+.italic .emoji {
+    font-style: normal;
 }
 .social-icons .social-icon {
     display: inline-flex;
@@ -83,3 +101,108 @@ html, body {
 .social-icon:hover {
     transform: translateY(-3px) rotate(360deg); /* Pop-up and spin */
   }
+/* add a color gradient to text */
+
+/*
+Light pink: #F7CAC9
+Lavender: #D8BFD8
+Periwinkle blue: #CCCCFF
+*/
+.history-link {
+    position: relative;
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    background: #9d9dff 0%; /* Flipped gradient order */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+    transition: background 0.5s ease; /* Transition applied to background property */
+  }
+  
+  .history-link:hover {
+    background: #ffa8a6; /* Gradient on hover state */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+.education {
+    background: url(../imgs/education.jpg);
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+}
+ 
+.education-link {
+    position: relative;
+    font-family: 'Inter', sans-serif;
+    background: #9d9dff;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+    transition: background 0.5s ease; /* Transition applied to background property */
+  }
+  
+  .education-link:hover {
+    background: #ffa8a6; /* Gradient on hover state */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+.navbar>li>a {
+    transition: all 0.5s;
+}
+.navbar>li>a:hover {
+    transform: translateY(-3px);
+    text-shadow: #fffff0 0px 0px 10px;
+}
+
+code {
+    font-family:'Courier New', Courier, monospace;
+    background-color: #222222;
+    padding: 0px 5px;
+    border-radius: 5px;
+}
+
+.projects-link {
+    position: relative;
+    font-family: 'Inter', sans-serif;
+    background: #9d9dff;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+    transition: background 0.5s ease; /* Transition applied to background property */
+  }
+  
+  .projects-link:hover {
+    background: #ffa8a6; /* Gradient on hover state */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.link {
+    background: #9d9dff;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+    transition: background 0.5s ease; /* Transition applied to background property */
+  }
+  
+  .link:hover {
+    background: #ffa8a6; /* Gradient on hover state */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.certifications-link {
+    background: #9d9dff;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+    transition: background 0.5s ease; /* Transition applied to background property */
+  }
+  
+  .certifications-link:hover {
+    background: #ffa8a6; /* Gradient on hover state */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
