@@ -616,10 +616,6 @@ video {
   margin-top: auto;
 }
 
-.mt-1 {
-  margin-top: 0.25rem;
-}
-
 .flex {
   display: flex;
 }
@@ -771,10 +767,6 @@ video {
 
 .pl-8 {
   padding-left: 2rem;
-}
-
-.pt-1 {
-  padding-top: 0.25rem;
 }
 
 .text-center {
@@ -1148,3 +1140,6 @@ code {
   -webkit-text-fill-color: transparent;
 }
 
+.text-7xl {
+  line-height: 1.2 !important;
+}
