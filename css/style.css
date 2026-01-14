@@ -250,3 +250,733 @@ code {
 .text-7xl {
     line-height: 1.2 !important;
 }
+
+/* ========================================
+   SECTION CONTAINER & TITLE STYLES
+   ======================================== */
+
+.section-container {
+    width: 100%;
+    color: #f9fafb;
+}
+
+.section-title {
+    font-size: 4rem;
+    font-weight: 700;
+    background: linear-gradient(to bottom, #f472b6, #60a5fa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+}
+
+.section-divider {
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(to right, #f472b6, #60a5fa);
+    margin: 0 auto;
+    border-radius: 2px;
+}
+
+/* ========================================
+   EXPERIENCE SECTION
+   ======================================== */
+
+.experience-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.experience-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.experience-card-accent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, #f472b6, #60a5fa);
+}
+
+.experience-content {
+    padding: 2rem;
+    padding-left: 2.5rem;
+}
+
+.experience-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.experience-logo {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.experience-logo img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.experience-title-block {
+    flex: 1;
+}
+
+.experience-role {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.experience-company {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.company-link {
+    color: #a5b4fc;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.company-link:hover {
+    color: #f9a8d4;
+}
+
+.experience-date {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.experience-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+}
+
+.experience-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: #d1d5db;
+    line-height: 1.6;
+}
+
+.experience-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.6rem;
+    width: 6px;
+    height: 6px;
+    background: linear-gradient(135deg, #f472b6, #60a5fa);
+    border-radius: 50%;
+}
+
+.skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-tag {
+    background: rgba(165, 180, 252, 0.1);
+    color: #a5b4fc;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    border: 1px solid rgba(165, 180, 252, 0.2);
+}
+
+.experience-sub-role {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.experience-role-secondary {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    margin-bottom: 0.5rem;
+}
+
+/* ========================================
+   EDUCATION SECTION
+   ======================================== */
+
+.education-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.education-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.education-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px);
+}
+
+.education-card-inner {
+    padding: 2.5rem;
+    text-align: center;
+}
+
+.education-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(96, 165, 250, 0.2));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2rem;
+    color: #f472b6;
+}
+
+.education-school {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.education-date {
+    color: #9ca3af;
+    margin-bottom: 1.5rem;
+}
+
+.education-degree {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.degree-label {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.degree-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.gpa-highlight {
+    color: #34d399;
+}
+
+.education-activities {
+    text-align: left;
+}
+
+.activities-label {
+    color: #9ca3af;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.activity-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.activity-tag {
+    background: rgba(255, 255, 255, 0.05);
+    color: #d1d5db;
+    padding: 0.35rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ========================================
+   PROJECTS SECTION
+   ======================================== */
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.project-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.project-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px);
+}
+
+.project-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.project-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(96, 165, 250, 0.2));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #f472b6;
+}
+
+.project-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.project-link {
+    color: #a5b4fc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.project-link:hover {
+    color: #f9a8d4;
+}
+
+.project-description {
+    color: #d1d5db;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+}
+
+.project-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+}
+
+.project-features li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #9ca3af;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.project-features li i {
+    color: #34d399;
+    font-size: 0.8rem;
+}
+
+.project-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.tech-tag {
+    background: rgba(96, 165, 250, 0.1);
+    color: #60a5fa;
+    padding: 0.35rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.project-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(96, 165, 250, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-top: auto;
+}
+
+.project-cta:hover {
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.3), rgba(96, 165, 250, 0.3));
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   CERTIFICATIONS SECTION
+   ======================================== */
+
+.certifications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.cert-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.cert-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateX(4px);
+}
+
+.cert-icon {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.15), rgba(96, 165, 250, 0.15));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #a5b4fc;
+    flex-shrink: 0;
+}
+
+.cert-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.cert-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cert-issuer {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.cert-arrow {
+    color: #6b7280;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.cert-card:hover .cert-arrow {
+    color: #a5b4fc;
+    transform: translateX(4px);
+}
+
+/* ========================================
+   TESTIMONIALS / REFERENCES SECTION
+   ======================================== */
+
+.testimonials-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.testimonial-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 2.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.testimonial-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.testimonial-quote-icon {
+    position: absolute;
+    top: 1.5rem;
+    left: 2rem;
+    font-size: 2rem;
+    color: rgba(244, 114, 182, 0.3);
+}
+
+.testimonial-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #d1d5db;
+    margin: 0 0 2rem 0;
+    padding-left: 1rem;
+    border-left: 3px solid rgba(244, 114, 182, 0.3);
+    font-style: italic;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.author-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.author-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #a5b4fc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.author-name:hover {
+    color: #f9a8d4;
+}
+
+.author-title {
+    color: #e5e7eb;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.author-company {
+    color: #9ca3af;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.author-linkedin {
+    width: 45px;
+    height: 45px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #60a5fa;
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.author-linkedin:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: scale(1.05);
+}
+
+/* ========================================
+   CONTACT SECTION
+   ======================================== */
+
+.contact-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 3rem;
+    text-align: center;
+}
+
+.contact-header {
+    margin-bottom: 2.5rem;
+}
+
+.contact-name {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.contact-tagline {
+    color: #9ca3af;
+    font-size: 1.1rem;
+}
+
+.contact-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+.contact-method {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.contact-method:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.contact-method-icon {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(96, 165, 250, 0.2));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: #f472b6;
+}
+
+.contact-method-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.contact-label {
+    color: #9ca3af;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.contact-value {
+    color: #fff;
+    font-weight: 500;
+}
+
+.contact-social {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.contact-social-link {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d1d5db;
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.contact-social-link:hover {
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(96, 165, 250, 0.2));
+    border-color: rgba(244, 114, 182, 0.3);
+    color: #fff;
+    transform: translateY(-3px);
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+
+@media screen and (max-width: 768px) {
+    .section-title {
+        font-size: 2.5rem;
+    }
+
+    .experience-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .experience-logo {
+        width: 60px;
+        height: 60px;
+    }
+
+    .education-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .projects-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .certifications-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-methods {
+        grid-template-columns: 1fr;
+    }
+
+    .testimonial-card {
+        padding: 1.5rem;
+    }
+
+    .testimonial-quote-icon {
+        position: static;
+        margin-bottom: 1rem;
+    }
+
+    .contact-card {
+        padding: 2rem;
+    }
+
+    .contact-name {
+        font-size: 2rem;
+    }
+}
