@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.dhpace.com)",
+      "WebFetch(domain:www.qedwealthsolutions.com)",
+      "Bash(npx playwright-core@latest screenshot --browser chromium --full-page --wait-for-timeout=2000 \"file:///C:/Users/joebi/Documents/GitHub/joespeaker.github.io/index.html\" screenshot-v4.png)",
+      "Bash(npx playwright:*)"
+    ]
+  }
+}
