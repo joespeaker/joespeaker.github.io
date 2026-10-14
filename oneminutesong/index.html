@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>One Minute Song</title>
+    <meta name="description" content="Spin a prompt, then build a song loop in 60 seconds. Works on your phone, nothing to install.">
+    <meta name="theme-color" content="#bf4d0e">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="One Minute Song">
+    <meta property="og:title" content="One Minute Song">
+    <meta property="og:description" content="Spin a prompt. Build the song in 60 seconds. Tap play on what someone made for you.">
+    <meta property="og:url" content="https://joebieker.com/oneminutesong/">
+    <meta property="og:image" content="https://joebieker.com/oneminutesong/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="One Minute Song: a cassette label with a 60 second countdown ring">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://joebieker.com/oneminutesong/">
+    <link rel="icon" type="image/png" href="../imgs/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+
+    <header class="label">
+        <h1>One Minute Song</h1>
+        <p id="tagline">Spin a prompt. Build the song in 60 seconds.</p>
+    </header>
+
+    <main class="screens">
+    <!-- 1. Spin -->
+    <section class="screen" id="screen-spin" aria-labelledby="spin-h">
+        <h2 class="sr-only" id="spin-h">Spin for a prompt</h2>
+        <div class="reels">
+            <div class="reel" data-reel="topic">
+                <div class="reel-head">
+                    <span class="reel-label" id="topic-label">Topic</span>
+                    <button type="button" class="lock" data-lock="topic" aria-pressed="false" aria-label="Lock topic"><svg class="i-open" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><svg class="i-shut" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
+                </div>
+                <button type="button" class="reel-window" data-reroll="topic" aria-describedby="topic-label" aria-label="Reroll topic">
+                    <span class="reel-text" id="topic-text">???</span>
+                </button>
+            </div>
+            <div class="reel" data-reel="style">
+                <div class="reel-head">
+                    <span class="reel-label" id="style-label">Style</span>
+                    <button type="button" class="lock" data-lock="style" aria-pressed="false" aria-label="Lock style"><svg class="i-open" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><svg class="i-shut" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
+                </div>
+                <button type="button" class="reel-window" data-reroll="style" aria-describedby="style-label" aria-label="Reroll style">
+                    <span class="reel-text" id="style-text">???</span>
+                </button>
+            </div>
+            <div class="reel" data-reel="constraint">
+                <div class="reel-head">
+                    <span class="reel-label" id="constraint-label">Constraint</span>
+                    <label class="mini-switch" for="constraint-on"><input type="checkbox" id="constraint-on" checked> On</label>
+                    <button type="button" class="lock" data-lock="constraint" aria-pressed="false" aria-label="Lock constraint"><svg class="i-open" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><svg class="i-shut" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
+                </div>
+                <button type="button" class="reel-window" data-reroll="constraint" aria-describedby="constraint-label" aria-label="Reroll constraint">
+                    <span class="reel-text" id="constraint-text">???</span>
+                </button>
+            </div>
+        </div>
+        <div class="prompt-card" id="prompt-card" hidden>
+            <p class="prompt-line" id="prompt-line"></p>
+            <p class="constraint-line" id="constraint-line"></p>
+        </div>
+        <p class="hint center" id="spin-hint">Tap a slot to reroll just that one. Lock the ones you want to keep.</p>
+        <div class="actions">
+            <button type="button" class="big-btn" id="spin">Spin</button>
+            <button type="button" class="big-btn" id="start" hidden>Start the clock</button>
+            <button type="button" class="text-btn" id="respin" hidden>Spin again</button>
+        </div>
+    </section>
+
+    <!-- 2. Studio -->
+    <section class="screen" id="screen-studio" aria-labelledby="studio-h" hidden>
+        <h2 class="sr-only" id="studio-h">Studio</h2>
+        <div class="studio-bar">
+            <p class="studio-prompt" id="studio-prompt"></p>
+            <div class="clock" id="clock" role="timer" aria-label="Time left">
+                <svg viewBox="0 0 44 44" aria-hidden="true">
+                    <circle class="clock-track" cx="22" cy="22" r="19"/>
+                    <circle class="clock-fill" id="clock-fill" cx="22" cy="22" r="19"/>
+                </svg>
+                <span class="clock-text" id="clock-text">60</span>
+            </div>
+            <button type="button" class="key finish" id="finish">Finish</button>
+        </div>
+        <div class="studio" id="studio">
+        <section class="panel" aria-labelledby="key-h">
+            <div class="panel-head">
+                <h2 id="key-h">Key · <span id="key-label">C major</span></h2>
+                <div class="seg" id="mode" role="radiogroup" aria-label="Mode">
+                    <button type="button" role="radio" data-mode="major" aria-checked="true">Major</button>
+                    <button type="button" role="radio" data-mode="minor" aria-checked="false">Minor</button>
+                </div>
+            </div>
+            <div class="keys" id="keys" role="radiogroup" aria-label="Key"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="palette-h">
+            <div class="panel-head">
+                <h2 id="palette-h">Chords</h2>
+                <p class="hint">Tap to hear · hold or ⋯ for variants</p>
+            </div>
+            <div class="palette" id="palette" role="group" aria-label="Chord palette"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="timeline-h">
+            <div class="panel-head">
+                <h2 id="timeline-h">Timeline</h2>
+                <div class="seg" id="bars-toggle" role="radiogroup" aria-label="Number of bars">
+                    <button type="button" role="radio" data-bars="4" aria-checked="true">4 bars</button>
+                    <button type="button" role="radio" data-bars="8" aria-checked="false">8 bars</button>
+                </div>
+            </div>
+            <div class="timeline" id="timeline" role="group" aria-label="Timeline bars"></div>
+            <p class="hint" id="timeline-hint">Tap a chord, then tap a bar. Or drag it in.</p>
+            <div class="transport">
+                <button type="button" class="key play" id="play" aria-pressed="false">▶ Play</button>
+                <button type="button" class="text-btn" id="clear">Clear</button>
+            </div>
+        </section>
+
+        <section class="panel" aria-labelledby="sound-h">
+            <div class="panel-head">
+                <h2 id="sound-h">Sound</h2>
+            </div>
+            <div class="synths" id="synths" role="radiogroup" aria-label="Chord sound"></div>
+            <div class="knobs">
+                <label class="knob" for="tempo">
+                    <span>Tempo <output id="tempo-out" for="tempo">100</output> BPM</span>
+                    <input type="range" id="tempo" min="70" max="160" step="1" value="100">
+                </label>
+                <label class="knob" for="reverb">
+                    <span>Reverb <output id="reverb-out" for="reverb">30%</output></span>
+                    <input type="range" id="reverb" min="0" max="100" step="1" value="30">
+                </label>
+                <label class="switch" for="bass">
+                    <input type="checkbox" id="bass" checked>
+                    <span>Bass</span>
+                </label>
+            </div>
+        </section>
+
+        <section class="panel" aria-labelledby="drums-h">
+            <div class="panel-head">
+                <h2 id="drums-h">Drums</h2>
+            </div>
+            <div class="opts" id="kits" role="radiogroup" aria-label="Drum kit"></div>
+            <div class="opts" id="patterns" role="radiogroup" aria-label="Drum pattern"></div>
+            <label class="knob" for="swing">
+                <span>Swing <output id="swing-out" for="swing">15%</output></span>
+                <input type="range" id="swing" min="0" max="100" step="1" value="15">
+            </label>
+        </section>
+        </div>
+        <div class="time-up" id="time-up" hidden>
+            <p class="time-up-title">Time!</p>
+            <p>Here's your song.</p>
+            <button type="button" class="text-btn" id="skip">Skip</button>
+        </div>
+    </section>
+
+    <!-- 3. Result -->
+    <section class="screen" id="screen-result" aria-labelledby="result-h" hidden>
+        <h2 class="sr-only" id="result-h">Your song</h2>
+        <div class="jcard">
+            <label class="jcard-label" for="title">Song title</label>
+            <textarea class="jcard-title" id="title" rows="1" maxlength="60" autocomplete="off" spellcheck="false"></textarea>
+            <p class="jcard-prompt" id="result-prompt"></p>
+            <dl class="jcard-specs" id="result-specs"></dl>
+        </div>
+        <div class="actions">
+            <button type="button" class="big-btn" id="replay">▶ Play it</button>
+            <div class="pair">
+                <button type="button" class="key wide" id="share">Share link</button>
+                <button type="button" class="key wide" id="download">Download audio</button>
+            </div>
+            <p class="status" id="result-status" aria-live="polite"></p>
+            <div class="pair">
+                <button type="button" class="text-btn" id="tinker">Keep tinkering</button>
+                <button type="button" class="text-btn" id="again">Spin again</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Listen (opened from a share link) -->
+    <section class="screen" id="screen-listen" aria-labelledby="listen-title" hidden>
+        <div class="jcard">
+            <span class="jcard-label">Someone sent you a song</span>
+            <h2 class="jcard-title as-text" id="listen-title"></h2>
+            <p class="jcard-prompt" id="listen-prompt"></p>
+            <dl class="jcard-specs" id="listen-specs"></dl>
+        </div>
+        <div class="actions">
+            <button type="button" class="big-btn" id="listen-play">▶ Play it</button>
+            <button type="button" class="key wide" id="make-own">Make your own</button>
+            <div class="pair">
+                <button type="button" class="text-btn" id="remix">Remix this one</button>
+                <button type="button" class="text-btn" id="listen-download">Download audio</button>
+            </div>
+            <p class="status" id="listen-status" aria-live="polite"></p>
+        </div>
+    </section>
+
+    </main>
+
+    <footer class="footer">
+        <span>Made by <a href="https://joebieker.com">Joe Bieker</a></span>
+        <label class="mini-switch" for="untimed"><input type="checkbox" id="untimed"> Untimed mode</label>
+    </footer>
+</div>
+
+<dialog class="sheet" id="variant-sheet" aria-labelledby="sheet-title">
+    <div class="sheet-head">
+        <h3 id="sheet-title">Variants</h3>
+        <button type="button" class="text-btn" id="sheet-done">Done</button>
+    </div>
+    <div class="variants" id="variants" role="radiogroup" aria-labelledby="sheet-title"></div>
+</dialog>
+
+<p class="sr-only" id="announce" aria-live="polite"></p>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
