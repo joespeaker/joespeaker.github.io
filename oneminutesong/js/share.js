@@ -12,10 +12,14 @@
 
 export const V1 = {
   variants: ['maj', '7', 'maj7', '6', 'add9', 'sus2', 'sus4', 'min', 'm7', 'm9', 'madd9', 'dim', 'm7b5', 'dim7'],
-  synths: ['pad', 'ep', 'pluck', 'organ', 'lofi'],
+  // The first five were synthesized voices; the sampled instruments were appended after.
+  synths: ['pad', 'ep', 'pluck', 'organ', 'lofi', 'piano', 'epiano', 'strings', 'guitar'],
   kits: ['none', 'acoustic', 'electro', 'garage'],
   patterns: ['basic', 'driving', 'halftime', 'sparse'],
 };
+
+// Old synth voices that no longer exist, and the sampled instrument that replaces each.
+const RETIRED_SYNTHS = { ep: 'epiano', pluck: 'guitar', lofi: 'epiano' };
 
 const B36 = '0123456789abcdefghijklmnopqrstuvwxyz';
 
@@ -82,7 +86,7 @@ export function decodeSong(hash) {
     mode: p[1] === 1 ? 'minor' : 'major',
     barCount,
     bars,
-    synth: V1.synths[p[4]] || 'ep',
+    synth: RETIRED_SYNTHS[V1.synths[p[4]]] || V1.synths[p[4]] || 'piano',
     kit: V1.kits[p[5]] || 'acoustic',
     pattern: V1.patterns[p[6]] || 'basic',
     tempo: clampInt(p[7], 70, 160, 100),

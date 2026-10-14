@@ -3,9 +3,11 @@ import {
 } from './theory.js';
 import { voiceChord, voiceProgression } from './voicing.js';
 import { ensureAudio, dryBus, setReverbMix, buildMaster } from './audio/engine.js';
-import { SYNTHS, SYNTH_IDS, BASS, bassMidi, createSynthRack } from './audio/synths.js';
+import {
+  INSTRUMENTS, CHORD_INSTRUMENTS, loadInstrument, isLoaded, createInstrumentRack,
+} from './audio/instruments.js';
 import { Scheduler } from './audio/scheduler.js';
-import { KITS, KIT_IDS, PATTERN_IDS, PATTERN_LABELS, hitsAt, createDrumRack } from './audio/drums.js';
+import { KITS, KIT_IDS, PATTERN_IDS, PATTERN_LABELS, hitsAt, createDrumRack, loadDrums } from './audio/drums.js';
 import { REELS, loadPrompts, listFor, pickOther, promptSentence, titleFromTopic } from './roulette.js';
 import { encodeSong, decodeSong } from './share.js';
 import { encodeWav } from './wav.js';
@@ -15,7 +17,8 @@ const state = {
   mode: 'major',
   variants: [],   // chosen variant id per scale degree
   selected: null, // palette degree waiting to be placed with a tap
-  synth: 'ep',
+  synth: 'piano',     // chord instrument
+  bassInst: 'bass',
   tempo: 100,
   reverb: 0.3,
   bass: true,
@@ -25,6 +28,21 @@ const state = {
   barCount: 4,
   bars: Array(8).fill(null), // each bar: { degree, variant } or null. Bars 5-8 kept when switching to 4.
 };
+
+// How each chord instrument plays a bar: [16th step it starts on, length in 16ths].
+// Stage B replaces this with chord blocks you place and stretch on the piano roll.
+const CHORD_RHYTHM = {
+  piano: [[0, 8], [8, 8]],
+  epiano: [[0, 6], [6, 4], [10, 6]],
+  pad: [[0, 16]],
+  strings: [[0, 16]],
+  organ: [[0, 16]],
+  guitar: [[0, 3], [3, 3], [6, 2], [8, 3], [11, 3], [14, 2]],
+};
+const BASS_RHYTHM = [[0, 6], [8, 5], [14, 2]];
+
+// Bass root between E1 (28) and D#2 (39), so every key sits under the chords.
+const bassMidi = (rootPc) => 28 + ((rootPc - 4 + 12) % 12);
 
 const $ = (sel) => document.querySelector(sel);
 const keysEl = $('#keys');
@@ -74,7 +92,7 @@ let previewDrums = null;
 function audio() {
   if (!rack) {
     ctx = ensureAudio();
-    rack = createSynthRack(ctx, dryBus());
+    rack = createInstrumentRack(ctx, dryBus());
     previewTake = rack.createTake();
     drumRack = createDrumRack(ctx, dryBus());
     previewDrums = drumRack.createTake();
@@ -87,13 +105,28 @@ function audio() {
   } else {
     ensureAudio();
   }
+  loadSounds();
+}
+
+// Fetch the samples the current song needs (once each). Resolves when they're ready.
+function loadSounds() {
+  return Promise.all([
+    loadInstrument(ctx, state.synth),
+    state.bass ? loadInstrument(ctx, state.bassInst) : null,
+    state.kit !== 'none' ? loadDrums(ctx) : null,
+  ]).catch(() => {
+    announce('Some sounds failed to load. Check your connection and try again.');
+  });
 }
 
 function preview(degree, variant) {
   audio();
   const notes = voiceChord(pcsFor(degree, variant), lastPreview);
   lastPreview = notes;
-  previewTake.chord(state.synth, notes, ctx.currentTime + 0.01, 0.9);
+  const id = state.synth;
+  const play = () => previewTake.chord(id, notes, ctx.currentTime + 0.01, 1.1);
+  if (isLoaded(id)) play();
+  else loadInstrument(ctx, id).then(play, () => {});
 }
 
 /* ---------- Key picker ---------- */
@@ -327,7 +360,7 @@ const synthsEl = $('#synths');
 
 function renderSynths() {
   synthsEl.innerHTML = '';
-  for (const id of SYNTH_IDS) {
+  for (const id of CHORD_INSTRUMENTS) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'key synth';
@@ -335,15 +368,25 @@ function renderSynths() {
     b.setAttribute('aria-checked', String(id === state.synth));
     b.tabIndex = id === state.synth ? 0 : -1;
     b.dataset.synth = id;
-    b.textContent = SYNTHS[id].label;
+    b.textContent = INSTRUMENTS[id].label;
+    // First pick of an instrument downloads its samples (about half a megabyte).
+    if (ctx && id === state.synth && !isLoaded(id)) {
+      b.classList.add('loading');
+      b.setAttribute('aria-busy', 'true');
+    }
     synthsEl.append(b);
   }
 }
 
 function setSynth(id) {
   state.synth = id;
+  audio();
   renderSynths();
   synthsEl.querySelector(`[data-synth="${id}"]`).focus();
+  loadInstrument(ctx, id).then(() => {
+    renderSynths();
+    if (state.synth === id) synthsEl.querySelector(`[data-synth="${id}"]`).focus();
+  }, () => {});
   if (!playing) preview(state.selected ?? 0);
 }
 
@@ -355,8 +398,8 @@ synthsEl.addEventListener('keydown', (e) => {
   const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
   if (step === undefined) return;
   e.preventDefault();
-  const i = SYNTH_IDS.indexOf(state.synth);
-  setSynth(SYNTH_IDS[(i + step + SYNTH_IDS.length) % SYNTH_IDS.length]);
+  const i = CHORD_INSTRUMENTS.indexOf(state.synth);
+  setSynth(CHORD_INSTRUMENTS[(i + step + CHORD_INSTRUMENTS.length) % CHORD_INSTRUMENTS.length]);
 });
 
 $('#tempo').addEventListener('input', (e) => {
@@ -368,7 +411,10 @@ $('#reverb').addEventListener('input', (e) => {
   $('#reverb-out').textContent = `${e.target.value}%`;
   setReverbMix(state.reverb);
 });
-$('#bass').addEventListener('change', (e) => { state.bass = e.target.checked; });
+$('#bass').addEventListener('change', (e) => {
+  state.bass = e.target.checked;
+  if (ctx) loadSounds();
+});
 
 /* ---------- Drums ---------- */
 
@@ -408,8 +454,10 @@ function radioRow(el, items, getValue, onPick) {
 }
 
 // Play one bar of the current pattern when nothing is running, so picks are audible.
-function auditionDrums() {
+async function auditionDrums() {
   audio();
+  if (playing || state.kit === 'none') return;
+  await loadDrums(ctx).catch(() => {});
   if (playing || state.kit === 'none') return;
   const stepDur = 60 / state.tempo / 4;
   const t0 = ctx.currentTime + 0.03;
@@ -725,12 +773,12 @@ function scheduleStep(step, t, stepDur, synthTarget, drumTarget) {
   const ts = t + swingOffset(s, stepDur);
   if (b) {
     const notes = voicingsForTimeline()[bar];
-    for (const [at, len] of SYNTHS[state.synth].rhythm) {
+    for (const [at, len] of CHORD_RHYTHM[state.synth]) {
       if (at === s) synthTarget.chord(state.synth, notes, ts, len * stepDur);
     }
     if (state.bass) {
-      for (const [at, len] of BASS.rhythm) {
-        if (at === s) synthTarget.bass(bassMidi(chords[b.degree].rootPc), ts, len * stepDur);
+      for (const [at, len] of BASS_RHYTHM) {
+        if (at === s) synthTarget.bass(state.bassInst, bassMidi(chords[b.degree].rootPc), ts, len * stepDur);
       }
     }
   }
@@ -1073,7 +1121,7 @@ function specsHTML() {
     ['Key', `${pretty(keyName(state.keyPc, state.mode))} ${state.mode}`],
     ['Chords', bars],
     ['Tempo', `${state.tempo} BPM`],
-    ['Sound', SYNTHS[state.synth].label],
+    ['Sound', INSTRUMENTS[state.synth].label],
     ['Drums', state.kit === 'none' ? 'None' : `${KITS[state.kit].label}, ${PATTERN_LABELS[state.pattern].toLowerCase()}`],
   ];
   return specs.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('');
@@ -1240,6 +1288,8 @@ async function shareSong(statusEl) {
 async function renderWav(passes = 2) {
   const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   if (!OAC) throw new Error('OfflineAudioContext unsupported');
+  audio();
+  await loadSounds(); // decoded sample buffers are shared with the offline context
   const sampleRate = 44100;
   const stepDur = 60 / state.tempo / 4;
   const steps = state.barCount * 16 * passes;
@@ -1248,7 +1298,7 @@ async function renderWav(passes = 2) {
   const seconds = start + steps * stepDur + tail;
   const off = new OAC(2, Math.ceil(sampleRate * seconds), sampleRate);
   const master = buildMaster(off, state.reverb);
-  const synthTake = createSynthRack(off, master.dry).createTake();
+  const synthTake = createInstrumentRack(off, master.dry).createTake();
   const drumTakeOff = createDrumRack(off, master.dry).createTake();
   for (let i = 0; i < steps; i++) {
     scheduleStep(i % (state.barCount * 16), start + i * stepDur, stepDur, synthTake, drumTakeOff);

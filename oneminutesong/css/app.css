@@ -636,3 +636,20 @@ body.dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; 
 .jcard-title.as-text { margin: 0; border-bottom-style: solid; }
 
 .screens { display: grid; gap: 14px; }
+
+/* Instrument downloading its samples */
+.key.loading { position: relative; color: var(--ink-soft); }
+.key.loading::after {
+  content: "";
+  position: absolute;
+  left: 10%; right: 10%; bottom: 4px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 200% 100%;
+  animation: loadbar 1s linear infinite;
+}
+@keyframes loadbar { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+.credits h2 { margin: 6px 0 0; font-size: 1rem; }
+.credits p { margin: 0; max-width: 60ch; }
+.credits a { color: var(--accent-text); }
