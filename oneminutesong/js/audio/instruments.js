@@ -19,7 +19,9 @@ export const INSTRUMENTS = {
   synthbass: { label: 'Synth bass',     octaves: [1, 4], gain: 1.5, release: 0.08, sustain: false },
 };
 
+// Which instruments each track offers.
 export const CHORD_INSTRUMENTS = ['piano', 'epiano', 'pad', 'strings', 'organ', 'guitar'];
+export const MELODY_INSTRUMENTS = ['vibes', 'piano', 'epiano', 'lead', 'strings', 'guitar', 'organ'];
 export const BASS_INSTRUMENTS = ['bass', 'synthbass'];
 
 const STEPS = [['C', 0], ['Eb', 3], ['Gb', 6], ['A', 9]];
@@ -133,50 +135,4 @@ export function playNote(ac, dest, id, midi, t, dur, velocity = 0.8) {
   src.connect(amp).connect(dest);
   src.start(start);
   src.stop(off + def.release * 2.5);
-}
-
-// Chord and bass buses feeding `dest`, plus "takes" (one run of the transport) that can be
-// faded out and dropped to silence everything scheduled in them at once.
-export function createInstrumentRack(ac, dest) {
-  // Thin out the low end of the chords so they don't fight the bass.
-  const chordBus = ac.createBiquadFilter();
-  chordBus.type = 'highpass';
-  chordBus.frequency.value = 110;
-  chordBus.Q.value = 0.5;
-  const chordLevel = ac.createGain();
-  chordLevel.gain.value = 2.1;
-  chordBus.connect(chordLevel).connect(dest);
-  const bassBus = ac.createGain();
-  bassBus.gain.value = 2.0;
-  bassBus.connect(dest);
-
-  function createTake() {
-    const chords = ac.createGain();
-    const bass = ac.createGain();
-    chords.connect(chordBus);
-    bass.connect(bassBus);
-    return {
-      chord(id, midiNotes, t, dur, velocity = 0.75) {
-        // Fewer notes play a little louder so 3-note and 5-note chords sit at similar levels.
-        const v = velocity * Math.min(1, 1.6 / Math.sqrt(midiNotes.length));
-        for (const m of midiNotes) playNote(ac, chords, id, m, t, dur, v);
-      },
-      note(id, midi, t, dur, velocity = 0.8) {
-        playNote(ac, chords, id, midi, t, dur, velocity);
-      },
-      bass(id, midi, t, dur, velocity = 0.85) {
-        playNote(ac, bass, id, midi, t, dur, velocity);
-      },
-      stop(fade = 0.06) {
-        const now = ac.currentTime;
-        for (const g of [chords, bass]) {
-          g.gain.setValueAtTime(g.gain.value, now);
-          g.gain.linearRampToValueAtTime(0, now + fade);
-          setTimeout(() => g.disconnect(), (fade + 0.1) * 1000);
-        }
-      },
-    };
-  }
-
-  return { createTake };
 }

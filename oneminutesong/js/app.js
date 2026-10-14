@@ -1,106 +1,146 @@
 import {
-  KEY_NAMES, diatonicChords, chordName, chordNotes, chordIntervals, pretty, VARIANTS, keyName,
+  KEY_NAMES, diatonicChords, chordName, chordNotes, pretty, VARIANTS, keyName,
 } from './theory.js';
-import { voiceChord, voiceProgression } from './voicing.js';
+import { voiceChord } from './voicing.js';
 import { ensureAudio, dryBus, setReverbMix, buildMaster } from './audio/engine.js';
 import {
-  INSTRUMENTS, CHORD_INSTRUMENTS, loadInstrument, isLoaded, createInstrumentRack,
+  INSTRUMENTS, CHORD_INSTRUMENTS, MELODY_INSTRUMENTS, BASS_INSTRUMENTS, loadInstrument, isLoaded,
 } from './audio/instruments.js';
+import { KITS, KIT_IDS, PATTERN_IDS, PATTERN_LABELS, loadDrums } from './audio/drums.js';
+import { createMixer } from './audio/mixer.js';
 import { Scheduler } from './audio/scheduler.js';
-import { KITS, KIT_IDS, PATTERN_IDS, PATTERN_LABELS, hitsAt, createDrumRack, loadDrums } from './audio/drums.js';
+import {
+  newSong, totalSteps, TRACK_IDS, CHORD_STYLES, placeBlock, findBlock,
+  setBlockChord, removeBlock, removeNote, fillDrums, setBars, changeKey, freezeBass, fromV1,
+} from './song.js';
+import { compile } from './compile.js';
+import { createEditor, ZOOM_STEPS } from './ui/editor.js';
 import { REELS, loadPrompts, listFor, pickOther, promptSentence, titleFromTopic } from './roulette.js';
-import { encodeSong, decodeSong } from './share.js';
+import { decodeSong, encodeSongV2, decodeSongV2 } from './share.js';
 import { encodeWav } from './wav.js';
 
-const state = {
-  keyPc: 0,
-  mode: 'major',
-  variants: [],   // chosen variant id per scale degree
-  selected: null, // palette degree waiting to be placed with a tap
-  synth: 'piano',     // chord instrument
-  bassInst: 'bass',
-  tempo: 100,
-  reverb: 0.3,
-  bass: true,
-  kit: 'acoustic',    // or 'none'
-  pattern: 'basic',
-  swing: 0.15,
-  barCount: 4,
-  bars: Array(8).fill(null), // each bar: { degree, variant } or null. Bars 5-8 kept when switching to 4.
-};
-
-// How each chord instrument plays a bar: [16th step it starts on, length in 16ths].
-// Stage B replaces this with chord blocks you place and stretch on the piano roll.
-const CHORD_RHYTHM = {
-  piano: [[0, 8], [8, 8]],
-  epiano: [[0, 6], [6, 4], [10, 6]],
-  pad: [[0, 16]],
-  strings: [[0, 16]],
-  organ: [[0, 16]],
-  guitar: [[0, 3], [3, 3], [6, 2], [8, 3], [11, 3], [14, 2]],
-};
-const BASS_RHYTHM = [[0, 6], [8, 5], [14, 2]];
-
-// Bass root between E1 (28) and D#2 (39), so every key sits under the chords.
-const bassMidi = (rootPc) => 28 + ((rootPc - 4 + 12) % 12);
-
 const $ = (sel) => document.querySelector(sel);
-const keysEl = $('#keys');
-const modeEl = $('#mode');
-const paletteEl = $('#palette');
-const keyLabel = $('#key-label');
-const sheet = $('#variant-sheet');
-const sheetTitle = $('#sheet-title');
-const variantsEl = $('#variants');
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const announceEl = $('#announce');
+const announce = (msg) => { announceEl.textContent = msg; };
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const coarse = window.matchMedia('(pointer: coarse)');
 
-let chords = [];
+const TRACK_LABELS = { chords: 'Chords', melody: 'Melody', bass: 'Bass', drums: 'Drums' };
+const TRACK_INSTRUMENTS = { chords: CHORD_INSTRUMENTS, melody: MELODY_INSTRUMENTS, bass: BASS_INSTRUMENTS };
 
-function resetVariants() {
-  chords = diatonicChords(state.keyPc, state.mode);
-  state.variants = chords.map((c) => c.defaultVariant);
-  state.selected = null;
+function defaultSong() {
+  const song = newSong();
+  fillDrums(song, KITS.acoustic.patterns.basic);
+  return song;
 }
 
-function pcsFor(degree, variant = state.variants[degree]) {
-  const c = chords[degree];
-  return chordIntervals(variant).map((i) => (c.rootPc + i) % 12);
+/* ---------- State, undo and autosave ---------- */
+
+let song = defaultSong();
+let compiled = compile(song);
+let chords = diatonicChords(song.keyPc, song.mode);
+
+const ui = {
+  track: 'chords',
+  selected: null,      // { type: 'block'|'note', id }
+  paletteSel: null,    // palette degree waiting to be dropped with a tap
+  paletteVariants: chords.map((c) => c.defaultVariant),
+  snap: 2,
+  zoom: coarse.matches ? 1 : 2,
+  lastLen: 4,
+};
+
+const undoStack = [];
+const redoStack = [];
+const HISTORY = 100;
+
+function begin() {
+  undoStack.push(JSON.stringify(song));
+  if (undoStack.length > HISTORY) undoStack.shift();
+  redoStack.length = 0;
 }
 
-// Placed bars keep their scale degree when the key changes, so the progression transposes.
-// A variant that doesn't fit the new chord quality (e.g. maj7 on a now-minor chord) resets.
-function fitBarsToKey() {
-  state.bars = state.bars.map((b) => {
-    if (!b) return null;
-    const c = chords[b.degree];
-    return { degree: b.degree, variant: c.variants.includes(b.variant) ? b.variant : c.defaultVariant };
-  });
+function changed() {
+  compiled = compile(song);
+  chords = diatonicChords(song.keyPc, song.mode);
+  if (mixer) mixer.setLevels(song);
+  renderStudio();
+  scheduleSave();
+}
+
+function commit(label, fn) {
+  begin();
+  fn();
+  changed();
+}
+
+function restore(json) {
+  song = JSON.parse(json);
+  ui.selected = null;
+  changed();
+  renderKeys();
+  renderPalette();
+  syncControls();
+}
+
+function undo() {
+  if (!undoStack.length) return;
+  redoStack.push(JSON.stringify(song));
+  restore(undoStack.pop());
+  announce('Undone.');
+}
+
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push(JSON.stringify(song));
+  restore(redoStack.pop());
+  announce('Redone.');
+}
+
+const SAVE_KEY = 'oms-song';
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(song)); } catch { /* storage blocked */ }
+  }, 400);
+}
+
+function savedSong() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (s && s.tracks && (s.tracks.chords.blocks.length || s.tracks.melody.notes.length)) return s;
+  } catch { /* nothing saved */ }
+  return null;
 }
 
 /* ---------- Audio ---------- */
 
 let ctx = null;
-let rack = null;
+let mixer = null;
+let previewMixer = null;
 let previewTake = null;
-let lastPreview = null;
 let scheduler = null;
 let take = null;
-let drumRack = null;
-let drumTake = null;
-let previewDrums = null;
+let playing = false;
+let onceTimer = null;
 
 // Called from inside a tap/click/keypress so iOS lets audio start.
 function audio() {
-  if (!rack) {
+  if (!mixer) {
     ctx = ensureAudio();
-    rack = createInstrumentRack(ctx, dryBus());
-    previewTake = rack.createTake();
-    drumRack = createDrumRack(ctx, dryBus());
-    previewDrums = drumRack.createTake();
-    setReverbMix(state.reverb);
+    mixer = createMixer(ctx, dryBus());
+    mixer.setLevels(song);
+    // Previews skip mute/solo so you always hear what you tap.
+    previewMixer = createMixer(ctx, dryBus());
+    previewMixer.setLevels(newSong());
+    previewTake = previewMixer.createTake();
+    setReverbMix(song.reverb);
     scheduler = new Scheduler(ctx, {
       onStep,
-      getTempo: () => state.tempo,
-      getTotalSteps: () => state.barCount * 16,
+      getTempo: () => song.tempo,
+      getTotalSteps: () => compiled.total,
     });
   } else {
     ensureAudio();
@@ -108,176 +148,304 @@ function audio() {
   loadSounds();
 }
 
-// Fetch the samples the current song needs (once each). Resolves when they're ready.
+// Fetch the samples this song needs (each instrument once). Resolves when ready.
 function loadSounds() {
+  const t = song.tracks;
   return Promise.all([
-    loadInstrument(ctx, state.synth),
-    state.bass ? loadInstrument(ctx, state.bassInst) : null,
-    state.kit !== 'none' ? loadDrums(ctx) : null,
-  ]).catch(() => {
-    announce('Some sounds failed to load. Check your connection and try again.');
-  });
+    loadInstrument(ctx, t.chords.inst),
+    t.melody.notes.length || ui.track === 'melody' ? loadInstrument(ctx, t.melody.inst) : null,
+    loadInstrument(ctx, t.bass.inst),
+    loadDrums(ctx),
+  ]).catch(() => announce('Some sounds failed to load. Check your connection and try again.'));
 }
 
-function preview(degree, variant) {
-  audio();
-  const notes = voiceChord(pcsFor(degree, variant), lastPreview);
-  lastPreview = notes;
-  const id = state.synth;
-  const play = () => previewTake.chord(id, notes, ctx.currentTime + 0.01, 1.1);
-  if (isLoaded(id)) play();
-  else loadInstrument(ctx, id).then(play, () => {});
+function whenLoaded(inst, fn) {
+  if (isLoaded(inst)) fn();
+  else loadInstrument(ctx, inst).then(fn, () => {});
 }
+
+const preview = {
+  note(track, midi) {
+    audio();
+    const inst = song.tracks[track].inst;
+    whenLoaded(inst, () => previewTake.note(track, inst, midi, ctx.currentTime + 0.01, 0.6, 0.8));
+  },
+  chord(notes) {
+    audio();
+    const inst = song.tracks.chords.inst;
+    whenLoaded(inst, () => previewTake.chord('chords', inst, notes, ctx.currentTime + 0.01, 1.1));
+  },
+  drum(lane, vel = 0.8) {
+    audio();
+    loadDrums(ctx).then(() => previewTake.drum(song.tracks.drums.kit, lane, ctx.currentTime + 0.01, vel), () => {});
+  },
+};
+
+let lastPreview = null;
+function previewDegree(degree, variant) {
+  const c = chords[degree];
+  const pcs = VARIANTS[variant].tones.map(([semi]) => (c.rootPc + semi) % 12);
+  lastPreview = voiceChord(pcs, lastPreview);
+  preview.chord(lastPreview);
+}
+
+// Swing delays every off-beat 16th. 0 = straight, 1 = full shuffle.
+const swingOffset = (s, stepDur) => (s % 2 === 1 ? song.swing * stepDur * 0.5 : 0);
+
+function playStep(target, step, t, stepDur) {
+  for (const ev of compiled.steps[step] || []) {
+    let when = t + swingOffset(step, stepDur);
+    let vel = ev.vel;
+    if (ev.track === 'drums') {
+      const feel = KITS[ev.kit] && KITS[ev.kit].feel;
+      if (feel) {
+        // Garage looseness: hats lean further behind the beat, everything drifts a little.
+        if ((ev.lane === 'hat' || ev.lane === 'open') && step % 2 === 1) when += feel.swing * stepDur;
+        when += (Math.random() * 2 - 1) * feel.jitter;
+        vel *= 1 - Math.random() * feel.velocity;
+      }
+    }
+    target.play(vel === ev.vel ? ev : { ...ev, vel }, when, stepDur);
+  }
+}
+
+function onStep(step, t, stepDur) {
+  playStep(take, step, t, stepDur);
+}
+
+const playBtn = $('#play');
+const posEl = $('#pos');
+
+function startTransport({ once = false, onEnd = null } = {}) {
+  audio();
+  if (playing) stopTransport();
+  playing = true;
+  playBtn.setAttribute('aria-pressed', 'true');
+  playBtn.textContent = '■ Stop';
+  take = mixer.createTake();
+  const opts = {};
+  if (once) {
+    opts.maxSteps = compiled.total;
+    opts.onDone = (endTime) => {
+      // Let the last notes ring a moment before wrapping up.
+      onceTimer = setTimeout(() => { stopTransport(); if (onEnd) onEnd(); }, (endTime - ctx.currentTime + 0.9) * 1000);
+    };
+  }
+  loadSounds().then(() => {
+    if (!playing) return;
+    scheduler.start(0, opts);
+    requestAnimationFrame(drawPlayhead);
+  });
+  updateReplayButtons();
+}
+
+function stopTransport() {
+  clearTimeout(onceTimer);
+  if (!playing) return;
+  playing = false;
+  playBtn.setAttribute('aria-pressed', 'false');
+  playBtn.textContent = '▶ Play';
+  scheduler.stop();
+  take.stop();
+  take = null;
+  editor.setPlayhead(null);
+  posEl.textContent = '1.1';
+  updateReplayButtons();
+}
+
+function drawPlayhead() {
+  if (!playing) return;
+  const step = scheduler.currentStep();
+  const v = scheduler.lastVisual;
+  if (step !== null && v) {
+    const frac = Math.min(1, Math.max(0, (ctx.currentTime - v.time) / scheduler.stepDuration()));
+    const pos = step + frac;
+    editor.setPlayhead(pos);
+    posEl.textContent = `${Math.floor(pos / 16) + 1}.${Math.floor((pos % 16) / 4) + 1}`;
+  }
+  requestAnimationFrame(drawPlayhead);
+}
+
+playBtn.addEventListener('click', () => (playing ? stopTransport() : startTransport()));
 
 /* ---------- Key picker ---------- */
 
+const keysEl = $('#keys');
+const modeEl = $('#mode');
+
 function renderKeys() {
   keysEl.innerHTML = '';
-  KEY_NAMES[state.mode].forEach((name, pc) => {
+  KEY_NAMES[song.mode].forEach((name, pc) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'key';
     b.setAttribute('role', 'radio');
-    b.setAttribute('aria-checked', String(pc === state.keyPc));
-    b.tabIndex = pc === state.keyPc ? 0 : -1;
+    b.setAttribute('aria-checked', String(pc === song.keyPc));
+    b.tabIndex = pc === song.keyPc ? 0 : -1;
     b.textContent = pretty(name);
     b.dataset.pc = pc;
     keysEl.append(b);
   });
   for (const b of modeEl.querySelectorAll('button')) {
-    const on = b.dataset.mode === state.mode;
+    const on = b.dataset.mode === song.mode;
     b.setAttribute('aria-checked', String(on));
     b.tabIndex = on ? 0 : -1;
   }
-  keyLabel.textContent = `${pretty(keyName(state.keyPc, state.mode))} ${state.mode}`;
+  $('#key-label').textContent = `${pretty(keyName(song.keyPc, song.mode))} ${song.mode}`;
 }
 
-function setKey(pc) {
-  state.keyPc = pc;
-  resetVariants();
-  fitBarsToKey();
+function setKey(keyPc, mode) {
+  commit('Change key', () => changeKey(song, keyPc, mode));
+  ui.paletteVariants = chords.map((c) => c.defaultVariant);
   renderKeys();
   renderPalette();
-  renderTimeline();
-  keysEl.querySelector(`[data-pc="${pc}"]`).focus();
-}
-
-function setMode(mode) {
-  state.mode = mode;
-  resetVariants();
-  fitBarsToKey();
-  renderKeys();
-  renderPalette();
-  renderTimeline();
 }
 
 keysEl.addEventListener('click', (e) => {
   const b = e.target.closest('[data-pc]');
-  if (b) setKey(Number(b.dataset.pc));
+  if (!b) return;
+  setKey(Number(b.dataset.pc), song.mode);
+  keysEl.querySelector(`[data-pc="${b.dataset.pc}"]`).focus();
 });
 keysEl.addEventListener('keydown', (e) => {
   const step = { ArrowRight: 1, ArrowDown: 6, ArrowLeft: -1, ArrowUp: -6 }[e.key];
   if (step === undefined) return;
   e.preventDefault();
-  setKey((state.keyPc + step + 12) % 12);
+  const pc = (song.keyPc + step + 12) % 12;
+  setKey(pc, song.mode);
+  keysEl.querySelector(`[data-pc="${pc}"]`).focus();
 });
-
 modeEl.addEventListener('click', (e) => {
   const b = e.target.closest('[data-mode]');
-  if (b) setMode(b.dataset.mode);
+  if (b && b.dataset.mode !== song.mode) setKey(song.keyPc, b.dataset.mode);
 });
 modeEl.addEventListener('keydown', (e) => {
   if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
   e.preventDefault();
-  setMode(state.mode === 'major' ? 'minor' : 'major');
-  modeEl.querySelector(`[data-mode="${state.mode}"]`).focus();
+  setKey(song.keyPc, song.mode === 'major' ? 'minor' : 'major');
+  modeEl.querySelector(`[data-mode="${song.mode}"]`).focus();
 });
 
-/* ---------- Palette ---------- */
+/* ---------- Chord palette ---------- */
 
-function chordLabel(degree) {
-  return chordName(chords[degree].root, state.variants[degree]);
-}
+const paletteEl = $('#palette');
 
 function renderPalette() {
   paletteEl.innerHTML = '';
   chords.forEach((c, i) => {
-    const v = state.variants[i];
-    const name = chordLabel(i);
+    const v = ui.paletteVariants[i] || c.defaultVariant;
+    const name = pretty(chordName(c.root, v));
     const notes = chordNotes(c.root, v).map(pretty).join(' ');
     const cell = document.createElement('div');
     cell.style.position = 'relative';
-
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'key chord';
-    b.classList.toggle('selected', state.selected === i);
+    b.classList.toggle('selected', ui.paletteSel === i);
     b.classList.toggle('changed', v !== c.defaultVariant);
     b.dataset.degree = i;
-    b.tabIndex = (state.selected ?? 0) === i ? 0 : -1;
-    b.setAttribute('aria-pressed', String(state.selected === i));
-    b.setAttribute('aria-label', `${c.roman}, ${pretty(name)}: ${notes}. Hold for variants.`);
-    b.innerHTML = `<span class="roman">${c.roman}</span><span class="name">${pretty(name)}</span><span class="notes">${notes}</span>`;
-
+    b.tabIndex = (ui.paletteSel ?? 0) === i ? 0 : -1;
+    b.setAttribute('aria-pressed', String(ui.paletteSel === i));
+    b.setAttribute('aria-label', `${c.roman}, ${name}: ${notes}. Hold for variants, A to add.`);
+    b.innerHTML = `<span class="roman">${c.roman}</span><span class="name">${name}</span><span class="notes">${notes}</span>`;
     const more = document.createElement('button');
     more.type = 'button';
     more.className = 'more';
     more.dataset.more = i;
     more.tabIndex = -1;
-    more.setAttribute('aria-label', `Variants for ${pretty(name)}`);
+    more.setAttribute('aria-label', `Variants for ${name}`);
     more.textContent = '⋯';
-
     cell.append(b, more);
     paletteEl.append(cell);
   });
 }
 
-function selectChord(degree) {
-  state.selected = state.selected === degree ? null : degree;
-  picked = null;
-  renderTimeline();
+function selectPaletteChord(degree) {
+  ui.paletteSel = ui.paletteSel === degree ? null : degree;
   renderPalette();
+  renderHint();
   paletteEl.querySelector(`[data-degree="${degree}"]`).focus();
-  preview(degree);
+  previewDegree(degree, ui.paletteVariants[degree]);
 }
 
-// Tap = select + preview. Long-press (450ms) = variant sheet. Pointer events cover mouse,
-// touch and pen; the long-press timer is cancelled if the finger moves or lifts early.
+// Drop a palette chord at a step. Returns false if no chord is selected.
+function placePaletteChord(step, degree = ui.paletteSel) {
+  if (degree === null || degree === undefined) return false;
+  let block = null;
+  commit('Add chord', () => { block = placeBlock(song, { s: step, d: degree, v: ui.paletteVariants[degree] }); });
+  ui.selected = { type: 'block', id: block.id };
+  changed();
+  const v = compiled.voicings.get(block.id);
+  if (v) preview.chord(v);
+  announce(`Placed ${pretty(chordName(chords[degree].root, block.v))} at bar ${Math.floor(step / 16) + 1}, beat ${Math.floor((step % 16) / 4) + 1}.`);
+  return true;
+}
+
+// Tap = select + preview, long-press = variants, drag = carry the chord to the lane.
 let pressTimer = null;
 let longPressed = false;
-let pressStart = null;
+let press = null;
+let ghost = null;
+let suppressClickUntil = 0;
 
 paletteEl.addEventListener('pointerdown', (e) => {
   const b = e.target.closest('[data-degree]');
   if (!b) return;
   const degree = Number(b.dataset.degree);
-  beginPress(e, { from: 'palette', degree, label: pretty(chordLabel(degree)) });
+  press = { degree, pointerId: e.pointerId, x: e.clientX, y: e.clientY, active: false };
   longPressed = false;
-  pressStart = { x: e.clientX, y: e.clientY };
   clearTimeout(pressTimer);
-  pressTimer = setTimeout(() => {
-    longPressed = true;
-    openVariants(Number(b.dataset.degree));
-  }, 450);
+  pressTimer = setTimeout(() => { longPressed = true; press = null; openVariants({ degree }); }, 450);
 });
-paletteEl.addEventListener('pointermove', (e) => {
-  if (pressStart && Math.hypot(e.clientX - pressStart.x, e.clientY - pressStart.y) > 10) {
-    clearTimeout(pressTimer);
-  }
-});
-for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) {
-  paletteEl.addEventListener(ev, () => { clearTimeout(pressTimer); pressStart = null; });
-}
 paletteEl.addEventListener('contextmenu', (e) => e.preventDefault());
+
+document.addEventListener('pointermove', (e) => {
+  if (!press || e.pointerId !== press.pointerId) return;
+  if (!press.active) {
+    if (Math.hypot(e.clientX - press.x, e.clientY - press.y) < 8) return;
+    press.active = true;
+    clearTimeout(pressTimer);
+    ghost = document.createElement('div');
+    ghost.className = 'ghost';
+    ghost.textContent = pretty(chordName(chords[press.degree].root, ui.paletteVariants[press.degree]));
+    ghost.setAttribute('aria-hidden', 'true');
+    document.body.append(ghost);
+    document.body.classList.add('dragging');
+  }
+  e.preventDefault();
+  ghost.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -120%)`;
+  ghost.classList.toggle('over', editor.dropStep(e.clientX, e.clientY) !== null);
+  editor.autoScroll(e.clientX, e.clientY);
+}, { passive: false });
+
+document.addEventListener('pointerup', (e) => {
+  clearTimeout(pressTimer);
+  if (!press || e.pointerId !== press.pointerId) { press = null; return; }
+  const p = press;
+  press = null;
+  if (!p.active) return;
+  editor.stopAutoScroll();
+  suppressClickUntil = performance.now() + 400;
+  if (ghost) ghost.remove();
+  ghost = null;
+  document.body.classList.remove('dragging');
+  const step = editor.dropStep(e.clientX, e.clientY);
+  if (step !== null) placePaletteChord(step, p.degree);
+});
+document.addEventListener('pointercancel', () => {
+  press = null;
+  if (ghost) ghost.remove();
+  ghost = null;
+  document.body.classList.remove('dragging');
+});
 
 paletteEl.addEventListener('click', (e) => {
   const more = e.target.closest('[data-more]');
-  if (more) { openVariants(Number(more.dataset.more)); return; }
+  if (more) { openVariants({ degree: Number(more.dataset.more) }); return; }
   const b = e.target.closest('[data-degree]');
-  if (!b) return;
+  if (!b || performance.now() < suppressClickUntil) return;
   if (longPressed) { longPressed = false; return; }
-  if (justDragged()) return;
-  selectChord(Number(b.dataset.degree));
+  selectPaletteChord(Number(b.dataset.degree));
 });
 
 paletteEl.addEventListener('keydown', (e) => {
@@ -293,51 +461,84 @@ paletteEl.addEventListener('keydown', (e) => {
     const target = paletteEl.querySelector(`[data-degree="${next}"]`);
     target.tabIndex = 0;
     target.focus();
-  } else if (e.key === 'v' || e.key === 'V' || (e.key === 'Enter' && e.shiftKey)) {
+  } else if (e.key === 'v' || e.key === 'V') {
     e.preventDefault();
-    openVariants(d);
+    openVariants({ degree: d });
+  } else if (e.key === 'a' || e.key === 'A') {
+    // Keyboard drop: add this chord right after the last one on the lane.
+    e.preventDefault();
+    const blocks = song.tracks.chords.blocks;
+    const end = blocks.length ? Math.max(...blocks.map((x) => x.s + x.l)) : 0;
+    if (end < totalSteps(song)) placePaletteChord(end, d);
+    else announce('The lane is full. Lengthen the loop or remove a chord first.');
   }
 });
 
-/* ---------- Variant sheet ---------- */
+/* ---------- Variant sheet (palette chords and placed blocks) ---------- */
 
-let sheetDegree = null;
+const sheet = $('#variant-sheet');
+const sheetTitle = $('#sheet-title');
+const variantsEl = $('#variants');
+let sheetTarget = null; // { degree } for the palette, { blockId } for a placed chord
 
-function openVariants(degree) {
-  sheetDegree = degree;
-  const c = chords[degree];
-  sheetTitle.textContent = `${c.roman} · ${pretty(c.root)} variants`;
+function openVariants(target) {
+  sheetTarget = target;
   renderVariants();
   if (!sheet.open) sheet.showModal();
 }
 
 function renderVariants() {
-  const c = chords[sheetDegree];
-  variantsEl.innerHTML = '';
-  for (const v of c.variants) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'key variant';
-    b.setAttribute('role', 'radio');
-    const on = state.variants[sheetDegree] === v;
-    b.setAttribute('aria-checked', String(on));
-    b.dataset.variant = v;
-    const notes = chordNotes(c.root, v).map(pretty).join(' ');
-    b.innerHTML = `<span class="name">${pretty(chordName(c.root, v))}</span><span class="notes">${notes}</span>`;
-    b.setAttribute('aria-label', `${pretty(chordName(c.root, v))}, ${VARIANTS[v].label}: ${notes}`);
-    variantsEl.append(b);
+  const block = sheetTarget.blockId ? findBlock(song, sheetTarget.blockId) : null;
+  const degree = block ? block.d : sheetTarget.degree;
+  const current = block ? block.v : ui.paletteVariants[degree];
+  const c = chords[degree];
+  sheetTitle.textContent = block ? `Chord in bar ${Math.floor(block.s / 16) + 1}` : `${c.roman} · ${pretty(c.root)} variants`;
+  const parts = [];
+  if (block) {
+    parts.push('<div class="degree-row" role="radiogroup" aria-label="Chord">');
+    chords.forEach((cc, i) => {
+      parts.push(`<button type="button" class="key opt" role="radio" aria-checked="${i === degree}" data-degree-pick="${i}">${cc.roman}<small>${pretty(chordName(cc.root, cc.defaultVariant))}</small></button>`);
+    });
+    parts.push('</div>');
   }
+  parts.push('<div class="variants-grid">');
+  for (const v of c.variants) {
+    const notes = chordNotes(c.root, v).map(pretty).join(' ');
+    const name = pretty(chordName(c.root, v));
+    parts.push(`<button type="button" class="key variant" role="radio" aria-checked="${v === current}" data-variant="${v}"
+      aria-label="${name}, ${VARIANTS[v].label}: ${notes}"><span class="name">${name}</span><span class="notes">${notes}</span></button>`);
+  }
+  parts.push('</div>');
+  if (block && block.n) parts.push('<button type="button" class="text-btn" data-unpin>Reset to automatic voicing</button>');
+  variantsEl.innerHTML = parts.join('');
 }
 
 variantsEl.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-variant]');
-  if (!b) return;
-  state.variants[sheetDegree] = b.dataset.variant;
-  state.selected = sheetDegree;
+  const block = sheetTarget.blockId ? findBlock(song, sheetTarget.blockId) : null;
+  const pick = e.target.closest('[data-degree-pick]');
+  const varBtn = e.target.closest('[data-variant]');
+  const unpin = e.target.closest('[data-unpin]');
+  if (block && pick) {
+    const d = Number(pick.dataset.degreePick);
+    commit('Change chord', () => setBlockChord(song, block.id, d, chords[d].defaultVariant));
+  } else if (varBtn) {
+    if (block) commit('Change chord', () => setBlockChord(song, block.id, block.d, varBtn.dataset.variant));
+    else {
+      ui.paletteVariants[sheetTarget.degree] = varBtn.dataset.variant;
+      ui.paletteSel = sheetTarget.degree;
+      renderPalette();
+      renderHint();
+    }
+  } else if (block && unpin) {
+    commit('Reset voicing', () => { block.n = null; });
+  } else return;
   renderVariants();
-  renderPalette();
-  preview(sheetDegree);
-  variantsEl.querySelector(`[data-variant="${b.dataset.variant}"]`).focus();
+  if (block) {
+    const v = compiled.voicings.get(block.id);
+    if (v) preview.chord(v);
+  } else {
+    previewDegree(sheetTarget.degree, ui.paletteVariants[sheetTarget.degree]);
+  }
 });
 
 $('#sheet-done').addEventListener('click', () => sheet.close());
@@ -349,508 +550,270 @@ sheet.addEventListener('click', (e) => {
   if (e.target === sheet && backdropPress) sheet.close();
   backdropPress = false;
 });
-sheet.addEventListener('close', () => {
-  const b = paletteEl.querySelector(`[data-degree="${sheetDegree}"]`);
-  if (b) b.focus();
-});
 
-/* ---------- Sound controls ---------- */
+/* ---------- Tracks (mixer) ---------- */
 
-const synthsEl = $('#synths');
+const tracksEl = $('#tracks');
 
-function renderSynths() {
-  synthsEl.innerHTML = '';
-  for (const id of CHORD_INSTRUMENTS) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'key synth';
-    b.setAttribute('role', 'radio');
-    b.setAttribute('aria-checked', String(id === state.synth));
-    b.tabIndex = id === state.synth ? 0 : -1;
-    b.dataset.synth = id;
-    b.textContent = INSTRUMENTS[id].label;
-    // First pick of an instrument downloads its samples (about half a megabyte).
-    if (ctx && id === state.synth && !isLoaded(id)) {
-      b.classList.add('loading');
-      b.setAttribute('aria-busy', 'true');
-    }
-    synthsEl.append(b);
-  }
+function renderTracks() {
+  const t = song.tracks;
+  tracksEl.innerHTML = TRACK_IDS.map((id) => {
+    const tr = t[id];
+    const options = id === 'drums'
+      ? KIT_IDS.map((k) => `<option value="${k}"${k === tr.kit ? ' selected' : ''}>${KITS[k].label}</option>`).join('')
+      : TRACK_INSTRUMENTS[id].map((k) => `<option value="${k}"${k === tr.inst ? ' selected' : ''}>${INSTRUMENTS[k].label}</option>`).join('');
+    const label = TRACK_LABELS[id];
+    const loading = ctx && id !== 'drums' && !isLoaded(tr.inst) && (id !== 'melody' || tr.notes.length || ui.track === 'melody');
+    return `<div class="track-row t-${id}${ui.track === id ? ' current' : ''}" data-track="${id}">
+      <button type="button" class="track-name" data-pick-track="${id}" aria-pressed="${ui.track === id}">${label}</button>
+      <select class="inst${loading ? ' loading' : ''}" data-inst="${id}" aria-label="${label} ${id === 'drums' ? 'kit' : 'instrument'}">${options}</select>
+      <button type="button" class="ms" data-mute="${id}" aria-pressed="${tr.mute}" aria-label="Mute ${label}">M</button>
+      <button type="button" class="ms solo" data-solo="${id}" aria-pressed="${tr.solo}" aria-label="Solo ${label}">S</button>
+      <input type="range" class="vol" data-vol="${id}" min="0" max="100" value="${Math.round(tr.vol * 100)}" aria-label="${label} volume">
+    </div>`;
+  }).join('');
 }
 
-function setSynth(id) {
-  state.synth = id;
+function pickTrack(id) {
+  ui.track = id;
+  ui.selected = null;
+  renderStudio();
+  editor.centerPitch();
+  if (id === 'melody' && ctx) loadSounds().then(renderTracks);
+}
+
+tracksEl.addEventListener('click', (e) => {
+  const pick = e.target.closest('[data-pick-track]');
+  const mute = e.target.closest('[data-mute]');
+  const solo = e.target.closest('[data-solo]');
+  if (pick) pickTrack(pick.dataset.pickTrack);
+  else if (mute) commit('Mute', () => { song.tracks[mute.dataset.mute].mute = !song.tracks[mute.dataset.mute].mute; });
+  else if (solo) commit('Solo', () => { song.tracks[solo.dataset.solo].solo = !song.tracks[solo.dataset.solo].solo; });
+});
+tracksEl.addEventListener('change', (e) => {
+  const sel = e.target.closest('[data-inst]');
+  if (!sel) return;
+  const id = sel.dataset.inst;
+  commit('Change sound', () => {
+    if (id === 'drums') song.tracks.drums.kit = sel.value;
+    else song.tracks[id].inst = sel.value;
+  });
   audio();
-  renderSynths();
-  synthsEl.querySelector(`[data-synth="${id}"]`).focus();
-  loadInstrument(ctx, id).then(() => {
-    renderSynths();
-    if (state.synth === id) synthsEl.querySelector(`[data-synth="${id}"]`).focus();
-  }, () => {});
-  if (!playing) preview(state.selected ?? 0);
-}
+  if (id === 'drums') preview.drum('kick');
+  else {
+    loadInstrument(ctx, sel.value).then(() => renderTracks(), () => {});
+    if (id === 'chords') previewDegree(0, chords[0].defaultVariant);
+    else preview.note(id, id === 'bass' ? 36 : 72);
+  }
+});
+let volBegun = false;
+tracksEl.addEventListener('input', (e) => {
+  const vol = e.target.closest('[data-vol]');
+  if (!vol) return;
+  if (!volBegun) { begin(); volBegun = true; }
+  song.tracks[vol.dataset.vol].vol = Number(vol.value) / 100;
+  if (mixer) mixer.setLevels(song);
+  scheduleSave();
+});
+tracksEl.addEventListener('change', (e) => { if (e.target.closest('[data-vol]')) volBegun = false; });
 
-synthsEl.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-synth]');
-  if (b) setSynth(b.dataset.synth);
-});
-synthsEl.addEventListener('keydown', (e) => {
-  const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
-  if (step === undefined) return;
-  e.preventDefault();
-  const i = CHORD_INSTRUMENTS.indexOf(state.synth);
-  setSynth(CHORD_INSTRUMENTS[(i + step + CHORD_INSTRUMENTS.length) % CHORD_INSTRUMENTS.length]);
-});
+/* ---------- Editor ---------- */
 
-$('#tempo').addEventListener('input', (e) => {
-  state.tempo = Number(e.target.value);
-  $('#tempo-out').textContent = state.tempo;
-});
-$('#reverb').addEventListener('input', (e) => {
-  state.reverb = Number(e.target.value) / 100;
-  $('#reverb-out').textContent = `${e.target.value}%`;
-  setReverbMix(state.reverb);
-});
-$('#bass').addEventListener('change', (e) => {
-  state.bass = e.target.checked;
-  if (ctx) loadSounds();
-});
+const editorHead = $('#editor-h');
+const toolsEl = $('#tools');
+const hintEl = $('#editor-hint');
 
-/* ---------- Drums ---------- */
-
-// Small helper for a row of radio-style tactile buttons with arrow-key support.
-function radioRow(el, items, getValue, onPick) {
-  function render() {
-    el.innerHTML = '';
-    for (const { id, label } of items()) {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'key opt';
-      b.setAttribute('role', 'radio');
-      const on = id === getValue();
-      b.setAttribute('aria-checked', String(on));
-      b.tabIndex = on ? 0 : -1;
-      b.dataset.id = id;
-      b.textContent = label;
-      el.append(b);
+const editor = createEditor($('#roll'), {
+  song: () => song,
+  compiled: () => compiled,
+  track: () => ui.track,
+  ui,
+  begin,
+  changed,
+  commit,
+  preview,
+  announce,
+  placePaletteChord: (step) => placePaletteChord(step),
+  openBlockVariants: (id) => openVariants({ blockId: id }),
+  selectBlock(id, sound) {
+    ui.selected = { type: 'block', id };
+    changed();
+    if (sound) {
+      const v = compiled.voicings.get(id);
+      if (v) preview.chord(v);
     }
-  }
-  el.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-id]');
-    if (b) { onPick(b.dataset.id); render(); el.querySelector(`[data-id="${b.dataset.id}"]`).focus(); }
-  });
-  el.addEventListener('keydown', (e) => {
-    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
-    if (step === undefined) return;
-    e.preventDefault();
-    const ids = items().map((i) => i.id);
-    const next = ids[(ids.indexOf(getValue()) + step + ids.length) % ids.length];
-    onPick(next);
-    render();
-    el.querySelector(`[data-id="${next}"]`).focus();
-  });
-  render();
-  return render;
-}
-
-// Play one bar of the current pattern when nothing is running, so picks are audible.
-async function auditionDrums() {
-  audio();
-  if (playing || state.kit === 'none') return;
-  await loadDrums(ctx).catch(() => {});
-  if (playing || state.kit === 'none') return;
-  const stepDur = 60 / state.tempo / 4;
-  const t0 = ctx.currentTime + 0.03;
-  for (let s = 0; s < 16; s++) scheduleDrums(previewDrums, s, t0 + s * stepDur, stepDur);
-}
-
-const patternsEl = $('#patterns');
-
-function syncPatternsEnabled() {
-  patternsEl.classList.toggle('off', state.kit === 'none');
-  patternsEl.querySelectorAll('button').forEach((b) => { b.disabled = state.kit === 'none'; });
-}
-
-const renderKits = radioRow($('#kits'),
-  () => [{ id: 'none', label: 'None' }, ...KIT_IDS.map((id) => ({ id, label: KITS[id].label }))],
-  () => state.kit,
-  (id) => {
-    state.kit = id;
-    syncPatternsEnabled();
-    auditionDrums();
-  });
-const renderPatterns = radioRow(patternsEl,
-  () => PATTERN_IDS.map((id) => ({ id, label: PATTERN_LABELS[id] })),
-  () => state.pattern,
-  (id) => { state.pattern = id; auditionDrums(); });
-$('#swing').addEventListener('input', (e) => {
-  state.swing = Number(e.target.value) / 100;
-  $('#swing-out').textContent = `${e.target.value}%`;
+  },
 });
 
-/* ---------- Timeline ---------- */
-
-const timelineEl = $('#timeline');
-const hintEl = $('#timeline-hint');
-const announceEl = $('#announce');
-const playBtn = $('#play');
-let playing = false;
-let picked = null;       // bar index picked up by a tap, waiting for a second tap to swap
-let focusBar = 0;
-let timelineVoicings = null;
-let timelineSignature = '';
-
-function slotName(b) {
-  return pretty(chordName(chords[b.degree].root, b.variant));
-}
-
-function announce(msg) {
-  announceEl.textContent = msg;
-}
-
-function renderTimeline() {
-  timelineEl.innerHTML = '';
-  timelineEl.classList.toggle('eight', state.barCount === 8);
-  for (let i = 0; i < state.barCount; i++) {
-    const b = state.bars[i];
-    const wrap = document.createElement('div');
-    wrap.className = 'bar-wrap';
-
-    const slot = document.createElement('button');
-    slot.type = 'button';
-    slot.className = 'key bar';
-    slot.dataset.slot = i;
-    slot.tabIndex = i === focusBar ? 0 : -1;
-    slot.classList.toggle('empty', !b);
-    slot.classList.toggle('picked', picked === i);
-    slot.classList.toggle('target', state.selected !== null);
-    const label = b ? slotName(b) : 'empty';
-    slot.setAttribute('aria-label', `Bar ${i + 1}: ${label}`);
-    slot.innerHTML = `<span class="num">${i + 1}</span>`
-      + (b ? `<span class="name">${label}</span><span class="roman">${chords[b.degree].roman}</span>` : '<span class="plus" aria-hidden="true">+</span>')
-      + '<span class="prog" aria-hidden="true"></span>';
-    wrap.append(slot);
-
-    if (b) {
-      const x = document.createElement('button');
-      x.type = 'button';
-      x.className = 'x';
-      x.dataset.remove = i;
-      x.tabIndex = -1;
-      x.setAttribute('aria-label', `Remove ${label} from bar ${i + 1}`);
-      x.textContent = '×';
-      wrap.append(x);
-    }
-    timelineEl.append(wrap);
+function renderTools() {
+  const t = song.tracks;
+  editorHead.textContent = TRACK_LABELS[ui.track];
+  const parts = [];
+  if (ui.track === 'chords') {
+    parts.push(`<label class="mini-field" for="style">Play as <select id="style">${Object.entries(CHORD_STYLES)
+      .map(([k, v]) => `<option value="${k}"${k === t.chords.style ? ' selected' : ''}>${v}</option>`).join('')}</select></label>`);
+  } else if (ui.track === 'bass') {
+    parts.push(t.bass.auto
+      ? '<span class="chip">Following the chords</span>'
+      : '<button type="button" class="key small" id="bass-follow">Follow chords again</button>');
+  } else if (ui.track === 'drums') {
+    parts.push(`<div class="presets" role="group" aria-label="Fill with a pattern">${PATTERN_IDS
+      .map((id) => `<button type="button" class="key small${id === t.drums.pattern ? ' current' : ''}" data-preset="${id}">${PATTERN_LABELS[id]}</button>`).join('')}</div>`);
   }
-
-  if (state.selected !== null) {
-    hintEl.textContent = `Tap a bar to place ${pretty(chordLabel(state.selected))}.`;
-  } else if (picked !== null) {
-    hintEl.textContent = 'Tap another bar to swap, or drag it off the timeline to remove.';
-  } else {
-    hintEl.textContent = 'Tap a chord, then tap a bar. Or drag it in.';
-  }
-  for (const b of barsToggle.querySelectorAll('button')) {
-    b.setAttribute('aria-checked', String(Number(b.dataset.bars) === state.barCount));
-  }
+  parts.push('<button type="button" class="text-btn" id="clear-track">Clear</button>');
+  toolsEl.innerHTML = parts.join('');
 }
 
-function focusSlot(i) {
-  focusBar = i;
-  const el = timelineEl.querySelector(`[data-slot="${i}"]`);
-  if (el) { timelineEl.querySelectorAll('[data-slot]').forEach((s) => { s.tabIndex = -1; }); el.tabIndex = 0; el.focus(); }
+function renderHint() {
+  const draw = coarse.matches
+    ? 'Tap to add a note. Drag a note to move it, its right edge to resize it. Double-tap to delete. Drag empty space to scroll.'
+    : 'Click and drag to draw notes. Drag a note to move it, its right edge to resize it. Double-click to delete.';
+  const selName = ui.paletteSel !== null ? pretty(chordName(chords[ui.paletteSel].root, ui.paletteVariants[ui.paletteSel])) : null;
+  hintEl.textContent = {
+    chords: selName
+      ? `Tap the chord lane to place ${selName}.`
+      : 'Drag chords from the palette onto the lane. Drag a block to move it, its right edge to stretch it, or off the lane to remove it. Tap a block twice for its options. Drag a note up or down to change the voicing.',
+    melody: draw,
+    bass: song.tracks.bass.auto ? `The bass follows your chords. ${draw} Editing any note takes it over.` : draw,
+    drums: 'Tap a step to cycle it: hit, accent, off. Pick a pattern above to start from.',
+  }[ui.track];
 }
 
-function place(i, degree) {
-  const variant = state.variants[degree];
-  state.bars[i] = { degree, variant };
-  state.selected = null;
-  picked = null;
-  renderPalette();
-  renderTimeline();
-  preview(degree, variant);
-  announce(`Placed ${slotName(state.bars[i])} in bar ${i + 1}.`);
-}
-
-function swap(i, j) {
-  [state.bars[i], state.bars[j]] = [state.bars[j], state.bars[i]];
-  picked = null;
-  renderTimeline();
-  announce(`Swapped bars ${i + 1} and ${j + 1}.`);
-}
-
-function removeBar(i) {
-  const b = state.bars[i];
-  if (!b) return;
-  state.bars[i] = null;
-  if (picked === i) picked = null;
-  renderTimeline();
-  announce(`Removed ${slotName(b)} from bar ${i + 1}.`);
-}
-
-function tapSlot(i) {
-  const b = state.bars[i];
-  if (state.selected !== null) { place(i, state.selected); return; }
-  if (picked === null) {
-    if (b) { picked = i; preview(b.degree, b.variant); announce(`Picked up ${slotName(b)} from bar ${i + 1}.`); }
-    else { hintEl.classList.remove('nudge'); void hintEl.offsetWidth; hintEl.classList.add('nudge'); }
-  } else if (picked === i) {
-    picked = null;
-  } else {
-    swap(picked, i);
+toolsEl.addEventListener('change', (e) => {
+  if (e.target.id === 'style') commit('Chord style', () => { song.tracks.chords.style = e.target.value; });
+});
+toolsEl.addEventListener('click', (e) => {
+  const presetBtn = e.target.closest('[data-preset]');
+  if (presetBtn) {
+    commit('Drum pattern', () => {
+      song.tracks.drums.pattern = presetBtn.dataset.preset;
+      fillDrums(song, KITS[song.tracks.drums.kit].patterns[presetBtn.dataset.preset]);
+    });
+    if (!playing) auditionBar();
     return;
   }
-  renderTimeline();
-}
-
-timelineEl.addEventListener('click', (e) => {
-  const x = e.target.closest('[data-remove]');
-  if (x) { removeBar(Number(x.dataset.remove)); return; }
-  const slot = e.target.closest('[data-slot]');
-  if (!slot || justDragged()) return;
-  focusBar = Number(slot.dataset.slot);
-  tapSlot(focusBar);
-  focusSlot(focusBar);
-});
-
-timelineEl.addEventListener('pointerdown', (e) => {
-  const slot = e.target.closest('[data-slot]');
-  if (!slot) return;
-  const i = Number(slot.dataset.slot);
-  if (state.bars[i]) beginPress(e, { from: 'slot', index: i, label: slotName(state.bars[i]) });
-});
-
-timelineEl.addEventListener('keydown', (e) => {
-  const slot = e.target.closest('[data-slot]');
-  if (!slot) return;
-  const i = Number(slot.dataset.slot);
-  const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 4, ArrowUp: -4 }[e.key];
-  if (step !== undefined) {
-    e.preventDefault();
-    focusSlot(Math.min(state.barCount - 1, Math.max(0, i + step)));
-  } else if (e.key === 'Delete' || e.key === 'Backspace') {
-    e.preventDefault();
-    removeBar(i);
-    focusSlot(i);
-  } else if (e.key === 'Escape') {
-    picked = null;
-    state.selected = null;
-    renderPalette();
-    renderTimeline();
-    focusSlot(i);
+  if (e.target.id === 'bass-follow') {
+    commit('Bass follows chords', () => { song.tracks.bass.auto = true; song.tracks.bass.notes = []; });
+    return;
+  }
+  if (e.target.id === 'clear-track') {
+    const label = TRACK_LABELS[ui.track];
+    commit(`Clear ${label}`, () => {
+      const t = song.tracks[ui.track];
+      if (ui.track === 'chords') t.blocks = [];
+      else if (ui.track === 'drums') t.grid = {};
+      else if (ui.track === 'bass') { t.auto = false; t.notes = []; }
+      else t.notes = [];
+    });
+    ui.selected = null;
+    changed();
+    announce(`Cleared ${label.toLowerCase()}. Undo brings it back.`);
   }
 });
+
+// One bar of the drum track, so pattern picks are audible while stopped.
+function auditionBar() {
+  audio();
+  loadDrums(ctx).then(() => {
+    const stepDur = 60 / song.tempo / 4;
+    const t0 = ctx.currentTime + 0.05;
+    for (let s = 0; s < 16; s++) {
+      for (const ev of compiled.steps[s] || []) {
+        if (ev.track === 'drums') previewTake.play(ev, t0 + s * stepDur + swingOffset(s, stepDur), stepDur);
+      }
+    }
+  }, () => {});
+}
+
+$('#snap').addEventListener('change', (e) => { ui.snap = Number(e.target.value); });
+$('#zoom-in').addEventListener('click', () => { ui.zoom = Math.min(ZOOM_STEPS.length - 1, ui.zoom + 1); renderStudio(); });
+$('#zoom-out').addEventListener('click', () => { ui.zoom = Math.max(0, ui.zoom - 1); renderStudio(); });
+
+function deleteSelection() {
+  const sel = ui.selected;
+  if (!sel) return false;
+  if (sel.type === 'block') commit('Remove chord', () => removeBlock(song, sel.id));
+  else if (sel.type === 'note' && (ui.track === 'melody' || ui.track === 'bass')) {
+    commit('Delete note', () => {
+      if (ui.track === 'bass') freezeBass(song);
+      removeNote(song, ui.track, sel.id);
+    });
+  } else return false;
+  ui.selected = null;
+  changed();
+  return true;
+}
+$('#delete-sel').addEventListener('click', deleteSelection);
+
+/* ---------- Transport controls ---------- */
 
 const barsToggle = $('#bars-toggle');
 barsToggle.addEventListener('click', (e) => {
   const b = e.target.closest('[data-bars]');
-  if (!b) return;
-  state.barCount = Number(b.dataset.bars);
-  focusBar = Math.min(focusBar, state.barCount - 1);
-  if (picked !== null && picked >= state.barCount) picked = null;
-  renderTimeline();
-});
-$('#clear').addEventListener('click', () => {
-  state.bars = Array(8).fill(null);
-  picked = null;
-  renderTimeline();
-  announce('Cleared the timeline.');
+  if (!b || Number(b.dataset.bars) === song.bars) return;
+  commit('Loop length', () => setBars(song, Number(b.dataset.bars)));
 });
 
-/* ---------- Drag and drop (pointer events, works for mouse, touch and pen) ---------- */
+let sliderBegun = false;
+function slider(id, apply, fmt) {
+  const el = $(`#${id}`);
+  el.addEventListener('input', () => {
+    if (!sliderBegun) { begin(); sliderBegun = true; }
+    apply(Number(el.value));
+    $(`#${id}-out`).textContent = fmt(Number(el.value));
+    scheduleSave();
+  });
+  el.addEventListener('change', () => { sliderBegun = false; });
+}
+slider('tempo', (v) => { song.tempo = v; }, (v) => String(v));
+slider('swing', (v) => { song.swing = v / 100; }, (v) => `${v}%`);
+slider('reverb', (v) => { song.reverb = v / 100; setReverbMix(song.reverb); }, (v) => `${v}%`);
 
-let press = null;
-let dragGhost = null;
-let suppressClickUntil = 0;
-const DRAG_THRESHOLD = 8;
-
-function justDragged() {
-  return performance.now() < suppressClickUntil;
+function syncControls() {
+  $('#tempo').value = String(song.tempo);
+  $('#tempo-out').textContent = String(song.tempo);
+  $('#swing').value = String(Math.round(song.swing * 100));
+  $('#swing-out').textContent = `${Math.round(song.swing * 100)}%`;
+  $('#reverb').value = String(Math.round(song.reverb * 100));
+  $('#reverb-out').textContent = `${Math.round(song.reverb * 100)}%`;
+  if (ctx) setReverbMix(song.reverb);
 }
 
-function beginPress(e, payload) {
-  press = { ...payload, pointerId: e.pointerId, x: e.clientX, y: e.clientY, active: false };
+$('#undo').addEventListener('click', undo);
+$('#redo').addEventListener('click', redo);
+
+function renderStudio() {
+  renderTracks();
+  renderTools();
+  renderHint();
+  editor.render();
+  for (const b of barsToggle.querySelectorAll('button')) b.setAttribute('aria-checked', String(Number(b.dataset.bars) === song.bars));
+  $('#undo').disabled = !undoStack.length;
+  $('#redo').disabled = !redoStack.length;
+  $('#delete-sel').disabled = !ui.selected;
 }
 
-function slotUnder(x, y) {
-  const el = document.elementFromPoint(x, y);
-  return el ? el.closest('[data-slot]') : null;
-}
-
-function endDrag() {
-  if (dragGhost) dragGhost.remove();
-  dragGhost = null;
-  document.body.classList.remove('dragging');
-  timelineEl.querySelectorAll('.over').forEach((el) => el.classList.remove('over'));
-  press = null;
-}
-
-document.addEventListener('pointermove', (e) => {
-  if (!press || e.pointerId !== press.pointerId) return;
-  if (!press.active) {
-    if (Math.hypot(e.clientX - press.x, e.clientY - press.y) < DRAG_THRESHOLD) return;
-    press.active = true;
-    clearTimeout(pressTimer); // a drag is not a long-press
-    dragGhost = document.createElement('div');
-    dragGhost.className = 'ghost';
-    dragGhost.textContent = press.label;
-    dragGhost.setAttribute('aria-hidden', 'true');
-    document.body.append(dragGhost);
-    document.body.classList.add('dragging');
-  }
-  e.preventDefault();
-  dragGhost.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -120%)`;
-  const over = slotUnder(e.clientX, e.clientY);
-  timelineEl.querySelectorAll('.over').forEach((el) => { if (el !== over) el.classList.remove('over'); });
-  if (over) over.classList.add('over');
-}, { passive: false });
-
-document.addEventListener('pointerup', (e) => {
-  if (!press || e.pointerId !== press.pointerId) return;
-  if (press.active) {
-    suppressClickUntil = performance.now() + 400;
-    const target = slotUnder(e.clientX, e.clientY);
-    const j = target ? Number(target.dataset.slot) : null;
-    if (press.from === 'palette' && j !== null) {
-      place(j, press.degree);
-    } else if (press.from === 'slot') {
-      const overTimeline = document.elementFromPoint(e.clientX, e.clientY)?.closest('#timeline');
-      if (j !== null && j !== press.index) {
-        // Drop on an empty bar = move; on a full bar = swap.
-        swap(press.index, j);
-      } else if (!overTimeline) {
-        removeBar(press.index);
-      }
-    }
-  }
-  endDrag();
-});
-document.addEventListener('pointercancel', endDrag);
-
-/* ---------- Playback ---------- */
-
-function voicingsForTimeline() {
-  const bars = state.bars.slice(0, state.barCount);
-  const sig = `${state.keyPc}${state.mode}|` + bars.map((b) => (b ? `${b.degree}${b.variant}` : '-')).join('|');
-  if (sig !== timelineSignature) {
-    timelineSignature = sig;
-    timelineVoicings = voiceProgression(bars.map((b) => (b ? pcsFor(b.degree, b.variant) : null)));
-  }
-  return timelineVoicings;
-}
-
-// Swing delays every off-beat 16th. 0 = straight, 1 = full triplet-ish shuffle.
-function swingOffset(s, stepDur) {
-  return s % 2 === 1 ? state.swing * stepDur * 0.5 : 0;
-}
-
-function scheduleDrums(target, s, t, stepDur) {
-  if (state.kit === 'none') return;
-  const kit = KITS[state.kit];
-  for (const { lane, velocity } of hitsAt(state.kit, state.pattern, s)) {
-    let when = t + swingOffset(s, stepDur);
-    let vel = velocity;
-    if (kit.feel) {
-      // Garage looseness: hats lean further behind the beat, everything drifts a little.
-      if ((lane === 'hat' || lane === 'open') && s % 2 === 1) when += kit.feel.swing * stepDur;
-      when += (Math.random() * 2 - 1) * kit.feel.jitter;
-      vel *= 1 - Math.random() * kit.feel.velocity;
-    }
-    target.hit(state.kit, lane, when, vel);
-  }
-}
-
-function onStep(step, t, stepDur) {
-  scheduleStep(step, t, stepDur, take, drumTake);
-}
-
-// Everything that sounds on one 16th step. Shared by live playback and the WAV export.
-function scheduleStep(step, t, stepDur, synthTarget, drumTarget) {
-  const bar = Math.floor(step / 16) % state.barCount;
-  const s = step % 16;
-  const b = state.bars[bar];
-  const ts = t + swingOffset(s, stepDur);
-  if (b) {
-    const notes = voicingsForTimeline()[bar];
-    for (const [at, len] of CHORD_RHYTHM[state.synth]) {
-      if (at === s) synthTarget.chord(state.synth, notes, ts, len * stepDur);
-    }
-    if (state.bass) {
-      for (const [at, len] of BASS_RHYTHM) {
-        if (at === s) synthTarget.bass(state.bassInst, bassMidi(chords[b.degree].rootPc), ts, len * stepDur);
-      }
-    }
-  }
-  scheduleDrums(drumTarget, s, t, stepDur);
-}
-
-function clearPlayhead() {
-  timelineEl.querySelectorAll('.on').forEach((el) => el.classList.remove('on'));
-}
-
-function drawPlayhead() {
-  if (!playing) return;
-  const step = scheduler.currentStep();
-  if (step !== null) {
-    const bar = Math.floor(step / 16) % state.barCount;
-    timelineEl.querySelectorAll('[data-slot]').forEach((el) => {
-      const on = Number(el.dataset.slot) === bar;
-      el.classList.toggle('on', on);
-      if (on) el.style.setProperty('--p', String((step % 16) / 16));
-    });
-  }
-  requestAnimationFrame(drawPlayhead);
-}
-
-// Start the transport. With once: true it plays the timeline a single time, then calls onEnd.
-function startTransport({ once = false, onEnd = null } = {}) {
-  audio();
-  if (playing) stopTransport();
-  playing = true;
-  playBtn.setAttribute('aria-pressed', 'true');
-  playBtn.textContent = '■ Stop';
-  take = rack.createTake();
-  drumTake = drumRack.createTake();
-  const opts = {};
-  if (once) {
-    opts.maxSteps = state.barCount * 16;
-    opts.onDone = (endTime) => {
-      // Let the last notes ring a moment before wrapping up.
-      onceTimer = setTimeout(() => { stopTransport(); if (onEnd) onEnd(); }, (endTime - ctx.currentTime + 0.9) * 1000);
-    };
-  }
-  scheduler.start(0, opts);
-  requestAnimationFrame(drawPlayhead);
-  updateReplayButton();
-}
-
-let onceTimer = null;
-
-function stopTransport() {
-  clearTimeout(onceTimer);
-  if (!playing) return;
-  playing = false;
-  playBtn.setAttribute('aria-pressed', 'false');
-  playBtn.textContent = '▶ Play';
-  scheduler.stop();
-  take.stop();
-  drumTake.stop();
-  take = null;
-  drumTake = null;
-  clearPlayhead();
-  updateReplayButton();
-}
-
-function setPlaying(on) {
-  if (on) startTransport(); else stopTransport();
-}
-
-playBtn.addEventListener('click', () => setPlaying(!playing));
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space' && e.target === document.body && !screens.studio.hidden && !studioEl.inert) {
+  if (screens.studio.hidden || studioEl.inert || sheet.open) return;
+  const typing = e.target.closest('input, select, textarea');
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z' || e.key === 'y')) {
+    if (typing && e.target.type === 'text') return;
     e.preventDefault();
-    setPlaying(!playing);
+    if (e.key === 'y' || e.shiftKey) redo(); else undo();
+    return;
+  }
+  if (typing) return;
+  if (e.code === 'Space' && (e.target === document.body || e.target.closest('.grid'))) {
+    e.preventDefault();
+    if (playing) stopTransport(); else startTransport();
+  } else if (e.key === 'Escape') {
+    ui.paletteSel = null;
+    ui.selected = null;
+    renderPalette();
+    changed();
+  } else if ((e.key === 'Delete' || e.key === 'Backspace') && !e.target.closest('.grid') && ui.selected && ui.selected.type === 'block') {
+    e.preventDefault();
+    deleteSelection();
   }
 });
 
@@ -859,7 +822,6 @@ document.addEventListener('keydown', (e) => {
 // ?clock=5 shortens the countdown for testing.
 const CLOCK_SECONDS = Math.max(1, Number(new URLSearchParams(location.search).get('clock')) || 60);
 const CLOCK_CIRC = 2 * Math.PI * 19;
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 const flow = {
   prompts: null,
@@ -872,7 +834,7 @@ const flow = {
   timerRaf: 0,
   lastAnnounced: null,
   titleEdited: false,
-  fresh: true,     // on the spin screen waiting for a Spin (first visit or after "Spin again")
+  fresh: true,
 };
 
 try { flow.untimed = localStorage.getItem('oms-untimed') === '1'; } catch { /* storage blocked */ }
@@ -881,6 +843,7 @@ const screens = {
   spin: $('#screen-spin'), studio: $('#screen-studio'), result: $('#screen-result'), listen: $('#screen-listen'),
 };
 const studioEl = $('#studio');
+const appEl = $('.app');
 const clockEl = $('#clock');
 const clockFill = $('#clock-fill');
 const clockText = $('#clock-text');
@@ -890,10 +853,11 @@ untimedEl.checked = flow.untimed;
 
 function showScreen(name) {
   for (const [key, el] of Object.entries(screens)) el.hidden = key !== name;
+  appEl.classList.toggle('wide', name === 'studio');
   window.scrollTo(0, 0);
+  if (name === 'studio') { renderStudio(); editor.centerPitch(); }
+  if (name === 'spin') $('#resume').hidden = !savedSong();
 }
-
-const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
 function promptHTML() {
   const { topic, style } = flow.values;
@@ -903,6 +867,11 @@ function promptHTML() {
 
 function constraintText() {
   return flow.constraintOn && flow.values.constraint ? `Constraint: ${flow.values.constraint}.` : '';
+}
+
+function promptPlainText() {
+  if (!flow.values.topic || !flow.values.style) return '';
+  return `${promptSentence(flow.values)} ${constraintText()}`.trim();
 }
 
 function renderPrompt() {
@@ -933,7 +902,7 @@ function renderPrompt() {
 
 function tick() {
   // A tiny closed-hat click per reel step, like a mechanical counter.
-  if (previewDrums && ctx) previewDrums.hit('electro', 'hat', ctx.currentTime + 0.005, 0.18);
+  if (previewTake && ctx) previewTake.drum('electro', 'hat', ctx.currentTime + 0.005, 0.15);
 }
 
 // Spin one reel: flick through entries, slowing down, then land on a fresh pick.
@@ -948,8 +917,7 @@ function spinReel(r, duration) {
     const finish = () => {
       flow.values[r] = final;
       textEl.textContent = final;
-      reel.classList.remove('spinning');
-      reel.classList.remove('landed');
+      reel.classList.remove('spinning', 'landed');
       void reel.offsetWidth;
       reel.classList.add('landed');
       flow.spinning--;
@@ -994,8 +962,7 @@ $('#respin').addEventListener('click', spinAll);
 $('#screen-spin').addEventListener('click', async (e) => {
   const lock = e.target.closest('[data-lock]');
   if (lock) {
-    const r = lock.dataset.lock;
-    flow.locked[r] = !flow.locked[r];
+    flow.locked[lock.dataset.lock] = !flow.locked[lock.dataset.lock];
     renderPrompt();
     return;
   }
@@ -1004,7 +971,6 @@ $('#screen-spin').addEventListener('click', async (e) => {
   const r = win.dataset.reroll;
   if (flow.locked[r] || (r === 'constraint' && !flow.constraintOn)) return;
   audio();
-  if (flow.values.topic && flow.values.style) flow.fresh = false;
   await spinReel(r, 650);
   if (flow.values.topic && flow.values.style) { flow.fresh = false; renderPrompt(); }
   announce(r === 'constraint' ? constraintText() : promptSentence(flow.values));
@@ -1020,14 +986,21 @@ $('#constraint-on').addEventListener('change', (e) => {
 
 /* Studio + clock */
 
-function resetSong() {
+function loadSong(next) {
   stopTransport();
-  state.bars = Array(8).fill(null);
-  state.selected = null;
-  picked = null;
+  song = next;
+  undoStack.length = 0;
+  redoStack.length = 0;
+  ui.selected = null;
+  ui.paletteSel = null;
+  compiled = compile(song);
+  chords = diatonicChords(song.keyPc, song.mode);
+  ui.paletteVariants = chords.map((c) => c.defaultVariant);
+  if (mixer) mixer.setLevels(song);
+  renderKeys();
   renderPalette();
-  renderTimeline();
-  flow.titleEdited = false;
+  syncControls();
+  if (!screens.studio.hidden) renderStudio();
 }
 
 function lockStudio(on) {
@@ -1036,12 +1009,24 @@ function lockStudio(on) {
   $('#finish').disabled = on;
 }
 
+function syncStudioPrompt() {
+  $('#studio-prompt').innerHTML = promptHTML() + (constraintText() ? `<br>${esc(constraintText())}` : '');
+}
+
 function startStudio() {
   audio();
-  resetSong();
+  const fresh = defaultSong();
+  Object.assign(fresh, {
+    topic: flow.values.topic || '', style: flow.values.style || '', constraint: flow.constraintOn ? flow.values.constraint || '' : '',
+  });
+  loadSong(fresh);
+  flow.titleEdited = false;
+  titleEl.value = '';
   lockStudio(false);
-  $('#studio-prompt').innerHTML = promptHTML() + (constraintText() ? `<br>${esc(constraintText())}` : '');
+  syncStudioPrompt();
+  ui.track = 'chords';
   showScreen('studio');
+  editor.scrollToStart();
   if (flow.untimed) showUntimedClock();
   else startClock();
 }
@@ -1083,10 +1068,10 @@ function stopClock() {
 }
 
 function songIsEmpty() {
-  return state.bars.slice(0, state.barCount).every((b) => !b) && state.kit === 'none';
+  return compiled.steps.every((evs) => !evs.length);
 }
 
-// 0:00 (or Finish): lock the studio, play the loop once through, then show the result.
+// 0:00 (or Finish): lock the studio, play the song once through, then show the result.
 function timeUp() {
   stopClock();
   clockEl.classList.remove('urgent');
@@ -1097,7 +1082,7 @@ function timeUp() {
   if (songIsEmpty()) { goResult(); return; }
   announce("Time's up. Playing your song.");
   timeUpEl.hidden = false;
-  timelineEl.scrollIntoView({ block: 'center', behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+  editor.scrollToStart();
   startTransport({ once: true, onEnd: goResult });
 }
 
@@ -1109,40 +1094,29 @@ $('#finish').addEventListener('click', timeUp);
 const titleEl = $('#title');
 const replayBtn = $('#replay');
 
-function updateReplayButton() {
+function updateReplayButtons() {
   const label = playing ? '■ Stop' : '▶ Play it';
   replayBtn.textContent = label;
   $('#listen-play').textContent = label;
 }
 
 function specsHTML() {
-  const bars = state.bars.slice(0, state.barCount).map((b) => (b ? slotName(b) : '–')).join('  ');
+  const t = song.tracks;
+  const blockNames = [...t.chords.blocks].sort((a, b) => a.s - b.s)
+    .map((b) => pretty(chordName(chords[b.d].root, b.v)));
+  const sounds = [
+    `${INSTRUMENTS[t.chords.inst].label} chords`,
+    t.melody.notes.length && !t.melody.mute ? `${INSTRUMENTS[t.melody.inst].label} melody` : null,
+    !t.bass.mute ? INSTRUMENTS[t.bass.inst].label : null,
+  ].filter(Boolean).join(' · ');
   const specs = [
-    ['Key', `${pretty(keyName(state.keyPc, state.mode))} ${state.mode}`],
-    ['Chords', bars],
-    ['Tempo', `${state.tempo} BPM`],
-    ['Sound', INSTRUMENTS[state.synth].label],
-    ['Drums', state.kit === 'none' ? 'None' : `${KITS[state.kit].label}, ${PATTERN_LABELS[state.pattern].toLowerCase()}`],
+    ['Key', `${pretty(keyName(song.keyPc, song.mode))} ${song.mode}`],
+    ['Chords', blockNames.length ? blockNames.join('  ') : '–'],
+    ['Length', `${song.bars} bars at ${song.tempo} BPM`],
+    ['Sounds', sounds],
+    ['Drums', t.drums.mute ? 'None' : KITS[t.drums.kit].label],
   ];
   return specs.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('');
-}
-
-function promptPlainText() {
-  if (!flow.values.topic || !flow.values.style) return '';
-  return `${promptSentence(flow.values)} ${constraintText()}`.trim();
-}
-
-function goResult() {
-  timeUpEl.hidden = true;
-  lockStudio(false);
-  if (!flow.titleEdited) titleEl.value = titleFromTopic(flow.values.topic || 'untitled');
-  $('#result-prompt').textContent = promptPlainText();
-  $('#result-specs').innerHTML = specsHTML();
-  $('#result-status').textContent = '';
-  showScreen('result');
-  fitTitle();
-  updateReplayButton();
-  titleEl.focus({ preventScroll: true });
 }
 
 // The title is a textarea so long names wrap instead of being cut off. Grow it to fit,
@@ -1151,18 +1125,37 @@ function fitTitle() {
   titleEl.style.height = 'auto';
   titleEl.style.height = `${titleEl.scrollHeight}px`;
 }
+
+function goResult() {
+  timeUpEl.hidden = true;
+  lockStudio(false);
+  if (!flow.titleEdited) titleEl.value = song.title || titleFromTopic(flow.values.topic || 'untitled');
+  song.title = titleEl.value;
+  scheduleSave();
+  $('#result-prompt').textContent = promptPlainText();
+  $('#result-specs').innerHTML = specsHTML();
+  $('#result-status').textContent = '';
+  buildShareLink();
+  showScreen('result');
+  fitTitle();
+  updateReplayButtons();
+  titleEl.focus({ preventScroll: true });
+}
+
+let linkTimer = null;
 titleEl.addEventListener('input', () => {
   flow.titleEdited = true;
   titleEl.value = titleEl.value.replace(/\s*\n\s*/g, ' ');
+  song.title = titleEl.value.trim();
+  scheduleSave();
   fitTitle();
+  clearTimeout(linkTimer);
+  linkTimer = setTimeout(buildShareLink, 150);
 });
 titleEl.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); titleEl.blur(); }
 });
-replayBtn.addEventListener('click', () => {
-  if (playing) stopTransport();
-  else startTransport({ once: true });
-});
+replayBtn.addEventListener('click', () => (playing ? stopTransport() : startTransport({ once: true })));
 $('#tinker').addEventListener('click', () => {
   stopTransport();
   showScreen('studio');
@@ -1175,8 +1168,21 @@ $('#again').addEventListener('click', () => {
   renderPrompt();
   $('#spin').focus();
 });
-
 $('#start').addEventListener('click', startStudio);
+$('#resume').addEventListener('click', () => {
+  const saved = savedSong();
+  if (!saved) return;
+  audio();
+  flow.values = { topic: saved.topic || null, style: saved.style || null, constraint: saved.constraint || null };
+  flow.constraintOn = Boolean(saved.constraint);
+  loadSong(saved);
+  flow.titleEdited = Boolean(saved.title);
+  titleEl.value = saved.title || '';
+  lockStudio(false);
+  syncStudioPrompt();
+  showScreen('studio');
+  showUntimedClock();
+});
 
 untimedEl.addEventListener('change', () => {
   flow.untimed = untimedEl.checked;
@@ -1192,74 +1198,31 @@ function currentTitle() {
   return titleEl.value.trim() || titleFromTopic(flow.values.topic || 'untitled');
 }
 
-function songState() {
-  return {
-    keyPc: state.keyPc,
-    mode: state.mode,
-    barCount: state.barCount,
-    bars: state.bars.map((b) => (b ? { ...b } : null)),
-    synth: state.synth,
-    kit: state.kit,
-    pattern: state.pattern,
-    tempo: state.tempo,
-    swing: state.swing,
-    reverb: state.reverb,
-    bass: state.bass,
-    topic: flow.values.topic || '',
-    style: flow.values.style || '',
-    constraint: flow.constraintOn ? flow.values.constraint || '' : '',
-    title: currentTitle(),
-  };
-}
+// Links are compressed asynchronously, but copying and the share sheet must run straight
+// from the tap (Safari drops the permission after an await). So keep a link ready,
+// rebuilt whenever the result screen opens or the title changes.
+let readyLink = { key: '', url: '' };
 
-function setSlider(id, value, text) {
-  $(`#${id}`).value = String(value);
-  $(`#${id}-out`).textContent = text;
-}
-
-function applySong(song) {
-  stopTransport();
-  Object.assign(state, {
-    keyPc: song.keyPc, mode: song.mode, barCount: song.barCount, synth: song.synth, kit: song.kit,
-    pattern: song.pattern, tempo: song.tempo, swing: song.swing, reverb: song.reverb, bass: song.bass,
-  });
-  resetVariants();
-  state.bars = song.bars.map((b) => (b ? { ...b } : null));
-  fitBarsToKey();
-  picked = null;
-  flow.values = { topic: song.topic || null, style: song.style || null, constraint: song.constraint || null };
-  flow.constraintOn = Boolean(song.constraint);
-  $('#constraint-on').checked = flow.constraintOn;
-  titleEl.value = song.title;
-  flow.titleEdited = Boolean(song.title);
-
-  renderKeys();
-  renderPalette();
-  renderTimeline();
-  renderSynths();
-  renderKits();
-  renderPatterns();
-  syncPatternsEnabled();
-  setSlider('tempo', state.tempo, String(state.tempo));
-  setSlider('reverb', Math.round(state.reverb * 100), `${Math.round(state.reverb * 100)}%`);
-  setSlider('swing', Math.round(state.swing * 100), `${Math.round(state.swing * 100)}%`);
-  $('#bass').checked = state.bass;
-  setReverbMix(state.reverb);
-  for (const r of REELS) $(`#${r}-text`).textContent = flow.values[r] || '???';
-  renderPrompt();
+async function buildShareLink() {
+  song.title = currentTitle();
+  const key = JSON.stringify(song);
+  if (readyLink.key === key) return readyLink.url;
+  const url = `${location.origin}${location.pathname}#${await encodeSongV2(song)}`;
+  readyLink = { key, url };
+  return url;
 }
 
 function shareUrl() {
-  return `${location.origin}${location.pathname}#${encodeSong(songState())}`;
+  song.title = currentTitle();
+  return readyLink.key === JSON.stringify(song) ? readyLink.url : null;
 }
 
 // Phones get the native share sheet; everyone else gets the link copied, with a
 // selectable fallback if the clipboard is blocked.
 async function shareSong(statusEl) {
-  const url = shareUrl();
+  const url = shareUrl() || await buildShareLink();
   const title = currentTitle();
-  const coarse = window.matchMedia('(pointer: coarse)').matches;
-  if (navigator.share && coarse) {
+  if (navigator.share && coarse.matches) {
     try {
       await navigator.share({ title: `${title} · One Minute Song`, text: `I wrote "${title}" in 60 seconds.`, url });
       statusEl.textContent = 'Shared.';
@@ -1282,27 +1245,26 @@ async function shareSong(statusEl) {
 
 /* ---------- Audio export (offline render to WAV) ---------- */
 
-// Renders the loop twice through on an OfflineAudioContext with the same master chain
-// as live playback. More reliable than MediaRecorder: no codec differences (Safari),
-// no realtime wait, and the result is a plain WAV every app can open.
+// Renders the song twice through on an OfflineAudioContext with the same master chain
+// and mixer as live playback, and saves a WAV every app can open. More reliable than
+// MediaRecorder: no codec differences (Safari) and no realtime wait.
 async function renderWav(passes = 2) {
   const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   if (!OAC) throw new Error('OfflineAudioContext unsupported');
   audio();
   await loadSounds(); // decoded sample buffers are shared with the offline context
   const sampleRate = 44100;
-  const stepDur = 60 / state.tempo / 4;
-  const steps = state.barCount * 16 * passes;
+  const stepDur = 60 / song.tempo / 4;
+  const steps = compiled.total * passes;
   const start = 0.05;
   const tail = 2.5;
   const seconds = start + steps * stepDur + tail;
   const off = new OAC(2, Math.ceil(sampleRate * seconds), sampleRate);
-  const master = buildMaster(off, state.reverb);
-  const synthTake = createInstrumentRack(off, master.dry).createTake();
-  const drumTakeOff = createDrumRack(off, master.dry).createTake();
-  for (let i = 0; i < steps; i++) {
-    scheduleStep(i % (state.barCount * 16), start + i * stepDur, stepDur, synthTake, drumTakeOff);
-  }
+  const master = buildMaster(off, song.reverb);
+  const offMixer = createMixer(off, master.dry);
+  offMixer.setLevels(song, false);
+  const offTake = offMixer.createTake();
+  for (let i = 0; i < steps; i++) playStep(offTake, i % compiled.total, start + i * stepDur, stepDur);
   // Fade the reverb tail out cleanly.
   master.out.gain.setValueAtTime(master.out.gain.value, seconds - 1.2);
   master.out.gain.linearRampToValueAtTime(0, seconds);
@@ -1313,7 +1275,7 @@ async function renderWav(passes = 2) {
 
 function fileSlug(title) {
   // Fold accents to plain letters (Café -> cafe) before dropping everything else.
-  return (title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'one-minute-song').slice(0, 50);
+  return (title.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'one-minute-song').slice(0, 50);
 }
 
 async function downloadAudio(btn, statusEl) {
@@ -1346,15 +1308,30 @@ $('#download').addEventListener('click', (e) => downloadAudio(e.currentTarget, $
 
 /* ---------- Listen view (opened from a share link) ---------- */
 
-function showListen(song) {
-  applySong(song);
-  $('#listen-title').textContent = song.title || 'Untitled';
+async function songFromHash(hash) {
+  if (/^#?v2=/.test(hash)) return decodeSongV2(hash);
+  const old = decodeSong(hash);
+  if (!old) return null;
+  const preset = old.kit !== 'none' && KITS[old.kit] ? KITS[old.kit].patterns[old.pattern] : KITS.acoustic.patterns.basic;
+  return fromV1(old, preset);
+}
+
+function showListen(next) {
+  loadSong(next);
+  flow.values = { topic: next.topic || null, style: next.style || null, constraint: next.constraint || null };
+  flow.constraintOn = Boolean(next.constraint);
+  $('#constraint-on').checked = flow.constraintOn;
+  titleEl.value = next.title || '';
+  flow.titleEdited = Boolean(next.title);
+  for (const r of REELS) $(`#${r}-text`).textContent = flow.values[r] || '???';
+  renderPrompt();
+  $('#listen-title').textContent = next.title || 'Untitled';
   $('#listen-prompt').textContent = promptPlainText();
   $('#listen-specs').innerHTML = specsHTML();
   $('#listen-status').textContent = '';
-  document.title = `${song.title || 'Untitled'} · One Minute Song`;
+  document.title = `${next.title || 'Untitled'} · One Minute Song`;
   showScreen('listen');
-  updateReplayButton();
+  updateReplayButtons();
 }
 
 function clearShareHash() {
@@ -1362,15 +1339,12 @@ function clearShareHash() {
   document.title = 'One Minute Song';
 }
 
-$('#listen-play').addEventListener('click', () => {
-  if (playing) stopTransport();
-  else startTransport({ once: true });
-});
+$('#listen-play').addEventListener('click', () => (playing ? stopTransport() : startTransport({ once: true })));
 $('#listen-download').addEventListener('click', (e) => downloadAudio(e.currentTarget, $('#listen-status')));
 $('#make-own').addEventListener('click', () => {
   clearShareHash();
   stopTransport();
-  resetSong();
+  loadSong(defaultSong());
   flow.values = { topic: null, style: null, constraint: null };
   flow.constraintOn = true;
   $('#constraint-on').checked = true;
@@ -1385,27 +1359,25 @@ $('#remix').addEventListener('click', () => {
   stopTransport();
   flow.fresh = false;
   lockStudio(false);
-  $('#studio-prompt').innerHTML = promptHTML() + (constraintText() ? `<br>${esc(constraintText())}` : '');
+  syncStudioPrompt();
   showScreen('studio');
   showUntimedClock();
 });
 
-window.addEventListener('hashchange', () => {
-  const song = decodeSong(location.hash);
-  if (song) showListen(song);
+window.addEventListener('hashchange', async () => {
+  const next = await songFromHash(location.hash);
+  if (next) showListen(next);
 });
 
 /* ---------- Boot ---------- */
 
-resetVariants();
 renderKeys();
 renderPalette();
-renderSynths();
-renderTimeline();
+syncControls();
 renderPrompt();
+showScreen('spin');
 loadPrompts().then((p) => {
   flow.prompts = p;
   renderPrompt();
 });
-const sharedSong = decodeSong(location.hash);
-if (sharedSong) showListen(sharedSong);
+if (location.hash) songFromHash(location.hash).then((s) => { if (s) showListen(s); });
