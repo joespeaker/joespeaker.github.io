@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { encodeSong, decodeSong, V1 } from '../js/share.js';
 import { encodeWav } from '../js/wav.js';
 import { VARIANTS } from '../js/theory.js';
-import { SYNTH_IDS } from '../js/audio/synths.js';
+import { CHORD_INSTRUMENTS } from '../js/audio/instruments.js';
 import { KIT_IDS, PATTERN_IDS } from '../js/audio/drums.js';
 
 const base = {
   keyPc: 9, mode: 'minor', barCount: 4,
   bars: [{ degree: 0, variant: 'm7' }, null, { degree: 5, variant: 'maj7' }, { degree: 4, variant: 'min' }, null, null, null, null],
-  synth: 'lofi', kit: 'garage', pattern: 'halftime',
+  synth: 'epiano', kit: 'garage', pattern: 'halftime',
   tempo: 87, swing: 0.42, reverb: 0.55, bass: false,
   topic: 'a gas station at 2am', style: '90s R&B', constraint: 'only 3 chords', title: 'Gas Station At 2am',
 };
@@ -37,9 +37,17 @@ test('round-trips 8 bars, every variant, unicode text, and no constraint', () =>
 
 test('frozen v1 lists cover everything the app can produce', () => {
   assert.deepEqual([...V1.variants].sort(), Object.keys(VARIANTS).sort());
-  assert.deepEqual([...V1.synths].sort(), [...SYNTH_IDS].sort());
+  for (const id of CHORD_INSTRUMENTS) assert.ok(V1.synths.includes(id), `${id} can be shared`);
   assert.deepEqual([...V1.kits].sort(), ['none', ...KIT_IDS].sort());
   assert.deepEqual([...V1.patterns].sort(), [...PATTERN_IDS].sort());
+});
+
+test('links made with the retired synth voices still open', () => {
+  // Same song with synth index 4 ('lofi') in the payload, as an old link would carry.
+  const legacy = { ...base, synth: 'lofi' };
+  assert.equal(decodeSong(encodeSong(legacy)).synth, 'epiano');
+  assert.equal(decodeSong(encodeSong({ ...base, synth: 'pluck' })).synth, 'guitar');
+  assert.equal(decodeSong(encodeSong({ ...base, synth: 'pad' })).synth, 'pad');
 });
 
 test('bad links decode to null or safe defaults', () => {

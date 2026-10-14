@@ -41,11 +41,12 @@ export function buildMaster(ac, reverbMix = 0.3) {
   wet.gain.value = 0.9;
 
   const glue = ac.createDynamicsCompressor();
-  glue.threshold.value = -18;
-  glue.knee.value = 12;
-  glue.ratio.value = 3;
-  glue.attack.value = 0.01;
-  glue.release.value = 0.2;
+  // Gentle glue: catches peaks without squashing the samples' dynamics.
+  glue.threshold.value = -12;
+  glue.knee.value = 10;
+  glue.ratio.value = 2;
+  glue.attack.value = 0.02;
+  glue.release.value = 0.25;
 
   const limiter = ac.createDynamicsCompressor();
   limiter.threshold.value = -2;
@@ -65,16 +66,31 @@ export function buildMaster(ac, reverbMix = 0.3) {
   return { dry, send, out };
 }
 
-// Stereo noise with an exponential tail: a cheap, decent-sounding room.
+// Stereo noise with an exponential tail that gets darker as it decays (high frequencies
+// die faster in real rooms), plus a short pre-delay. Cheap, but much less "hissy".
 function makeImpulse(ac, seconds, decay) {
   const len = Math.floor(ac.sampleRate * seconds);
+  const pre = Math.floor(ac.sampleRate * 0.012);
   const ir = ac.createBuffer(2, len, ac.sampleRate);
   for (let ch = 0; ch < 2; ch++) {
     const data = ir.getChannelData(ch);
-    for (let i = 0; i < len; i++) {
-      const t = i / len;
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, decay) * (i < 40 ? i / 40 : 1);
+    let lp = 0;
+    for (let i = pre; i < len; i++) {
+      const t = (i - pre) / (len - pre);
+      const coeff = 0.15 + 0.8 * t;           // one-pole lowpass, closing over time
+      lp += (1 - coeff) * ((Math.random() * 2 - 1) - lp);
+      data[i] = lp * Math.pow(1 - t, decay) * Math.min(1, (i - pre) / 200);
     }
+    // The lowpass lowers the energy; scale back to what plain white noise would give so
+    // the reverb knob means the same amount of room as before.
+    let actual = 0;
+    let target = 0;
+    for (let i = pre; i < len; i++) {
+      actual += data[i] * data[i];
+      target += Math.pow(1 - (i - pre) / (len - pre), 2 * decay) / 3;
+    }
+    const k = Math.sqrt(target / actual) * 0.8;
+    for (let i = pre; i < len; i++) data[i] *= k;
   }
   return ir;
 }

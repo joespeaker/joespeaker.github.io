@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>One Minute Song</title>
-    <meta name="description" content="Spin a prompt, then build a song loop in 60 seconds. Works on your phone, nothing to install.">
+    <meta name="description" content="Spin a prompt, then make a song in 60 seconds in a little in-browser DAW with real instruments.">
     <meta name="theme-color" content="#bf4d0e">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="One Minute Song">
@@ -74,6 +74,7 @@
             <button type="button" class="big-btn" id="spin">Spin</button>
             <button type="button" class="big-btn" id="start" hidden>Start the clock</button>
             <button type="button" class="text-btn" id="respin" hidden>Spin again</button>
+            <button type="button" class="text-btn" id="resume" hidden>Continue your last song</button>
         </div>
     </section>
 
@@ -92,73 +93,90 @@
             <button type="button" class="key finish" id="finish">Finish</button>
         </div>
         <div class="studio" id="studio">
-        <section class="panel" aria-labelledby="key-h">
-            <div class="panel-head">
-                <h2 id="key-h">Key · <span id="key-label">C major</span></h2>
-                <div class="seg" id="mode" role="radiogroup" aria-label="Mode">
-                    <button type="button" role="radio" data-mode="major" aria-checked="true">Major</button>
-                    <button type="button" role="radio" data-mode="minor" aria-checked="false">Minor</button>
+            <div class="studio-side">
+                <section class="panel transport-panel" aria-label="Transport">
+                    <div class="transport-row">
+                        <button type="button" class="key play" id="play" aria-pressed="false">▶ Play</button>
+                        <output class="pos" id="pos" aria-label="Position">1.1</output>
+                        <div class="undo">
+                            <button type="button" class="key icon" id="undo" aria-label="Undo" title="Undo (Ctrl+Z)" disabled>↶</button>
+                            <button type="button" class="key icon" id="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled>↷</button>
+                        </div>
+                    </div>
+                    <div class="transport-row">
+                        <span class="mini-label">Loop</span>
+                        <div class="seg" id="bars-toggle" role="radiogroup" aria-label="Loop length">
+                            <button type="button" role="radio" data-bars="4" aria-checked="true">4 bars</button>
+                            <button type="button" role="radio" data-bars="8" aria-checked="false">8</button>
+                            <button type="button" role="radio" data-bars="16" aria-checked="false">16</button>
+                        </div>
+                    </div>
+                    <div class="knobs three">
+                        <label class="knob" for="tempo">
+                            <span>Tempo <output id="tempo-out" for="tempo">100</output></span>
+                            <input type="range" id="tempo" min="70" max="160" step="1" value="100">
+                        </label>
+                        <label class="knob" for="swing">
+                            <span>Swing <output id="swing-out" for="swing">15%</output></span>
+                            <input type="range" id="swing" min="0" max="100" step="1" value="15">
+                        </label>
+                        <label class="knob" for="reverb">
+                            <span>Reverb <output id="reverb-out" for="reverb">25%</output></span>
+                            <input type="range" id="reverb" min="0" max="100" step="1" value="25">
+                        </label>
+                    </div>
+                </section>
+
+                <section class="panel" aria-labelledby="key-h">
+                    <div class="panel-head">
+                        <h2 id="key-h">Key · <span id="key-label">C major</span></h2>
+                        <div class="seg" id="mode" role="radiogroup" aria-label="Mode">
+                            <button type="button" role="radio" data-mode="major" aria-checked="true">Major</button>
+                            <button type="button" role="radio" data-mode="minor" aria-checked="false">Minor</button>
+                        </div>
+                    </div>
+                    <div class="keys" id="keys" role="radiogroup" aria-label="Key"></div>
+                </section>
+
+                <section class="panel" aria-labelledby="palette-h">
+                    <div class="panel-head">
+                        <h2 id="palette-h">Chord palette</h2>
+                        <p class="hint">Drag onto the chord lane, or tap one then tap the lane</p>
+                    </div>
+                    <div class="palette" id="palette" role="group" aria-label="Chord palette"></div>
+                </section>
+
+                <section class="panel" aria-labelledby="tracks-h">
+                    <div class="panel-head">
+                        <h2 id="tracks-h">Tracks</h2>
+                    </div>
+                    <div class="tracks" id="tracks"></div>
+                </section>
+            </div>
+
+            <section class="panel editor-panel" aria-labelledby="editor-h">
+                <div class="panel-head editor-head">
+                    <h2 id="editor-h">Chords</h2>
+                    <div class="tools" id="tools"></div>
                 </div>
-            </div>
-            <div class="keys" id="keys" role="radiogroup" aria-label="Key"></div>
-        </section>
-
-        <section class="panel" aria-labelledby="palette-h">
-            <div class="panel-head">
-                <h2 id="palette-h">Chords</h2>
-                <p class="hint">Tap to hear · hold or ⋯ for variants</p>
-            </div>
-            <div class="palette" id="palette" role="group" aria-label="Chord palette"></div>
-        </section>
-
-        <section class="panel" aria-labelledby="timeline-h">
-            <div class="panel-head">
-                <h2 id="timeline-h">Timeline</h2>
-                <div class="seg" id="bars-toggle" role="radiogroup" aria-label="Number of bars">
-                    <button type="button" role="radio" data-bars="4" aria-checked="true">4 bars</button>
-                    <button type="button" role="radio" data-bars="8" aria-checked="false">8 bars</button>
+                <p class="hint" id="editor-hint"></p>
+                <div class="roll-scroll" id="roll"></div>
+                <div class="editor-foot">
+                    <label class="mini-field" for="snap">Snap
+                        <select id="snap">
+                            <option value="1">1/16</option>
+                            <option value="2" selected>1/8</option>
+                            <option value="4">1/4</option>
+                            <option value="16">Bar</option>
+                        </select>
+                    </label>
+                    <div class="zoom">
+                        <button type="button" class="key icon" id="zoom-out" aria-label="Zoom out">−</button>
+                        <button type="button" class="key icon" id="zoom-in" aria-label="Zoom in">+</button>
+                    </div>
+                    <button type="button" class="text-btn" id="delete-sel" disabled>Delete selected</button>
                 </div>
-            </div>
-            <div class="timeline" id="timeline" role="group" aria-label="Timeline bars"></div>
-            <p class="hint" id="timeline-hint">Tap a chord, then tap a bar. Or drag it in.</p>
-            <div class="transport">
-                <button type="button" class="key play" id="play" aria-pressed="false">▶ Play</button>
-                <button type="button" class="text-btn" id="clear">Clear</button>
-            </div>
-        </section>
-
-        <section class="panel" aria-labelledby="sound-h">
-            <div class="panel-head">
-                <h2 id="sound-h">Sound</h2>
-            </div>
-            <div class="synths" id="synths" role="radiogroup" aria-label="Chord sound"></div>
-            <div class="knobs">
-                <label class="knob" for="tempo">
-                    <span>Tempo <output id="tempo-out" for="tempo">100</output> BPM</span>
-                    <input type="range" id="tempo" min="70" max="160" step="1" value="100">
-                </label>
-                <label class="knob" for="reverb">
-                    <span>Reverb <output id="reverb-out" for="reverb">30%</output></span>
-                    <input type="range" id="reverb" min="0" max="100" step="1" value="30">
-                </label>
-                <label class="switch" for="bass">
-                    <input type="checkbox" id="bass" checked>
-                    <span>Bass</span>
-                </label>
-            </div>
-        </section>
-
-        <section class="panel" aria-labelledby="drums-h">
-            <div class="panel-head">
-                <h2 id="drums-h">Drums</h2>
-            </div>
-            <div class="opts" id="kits" role="radiogroup" aria-label="Drum kit"></div>
-            <div class="opts" id="patterns" role="radiogroup" aria-label="Drum pattern"></div>
-            <label class="knob" for="swing">
-                <span>Swing <output id="swing-out" for="swing">15%</output></span>
-                <input type="range" id="swing" min="0" max="100" step="1" value="15">
-            </label>
-        </section>
+            </section>
         </div>
         <div class="time-up" id="time-up" hidden>
             <p class="time-up-title">Time!</p>
@@ -212,7 +230,7 @@
     </main>
 
     <footer class="footer">
-        <span>Made by <a href="https://joebieker.com">Joe Bieker</a></span>
+        <span>Made by <a href="https://joebieker.com">Joe Bieker</a> · <a href="credits.html">Sound credits</a></span>
         <label class="mini-switch" for="untimed"><input type="checkbox" id="untimed"> Untimed mode</label>
     </footer>
 </div>
