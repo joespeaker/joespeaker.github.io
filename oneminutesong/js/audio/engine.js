@@ -17,7 +17,7 @@ export function ensureAudio() {
   if (!ctx) {
     const AC = window.AudioContext || window.webkitAudioContext;
     ctx = new AC({ latencyHint: 'interactive' });
-    nodes = buildGraph(ctx);
+    nodes = buildMaster(ctx);
     // iOS unlock: play one silent sample inside the gesture.
     const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
     const src = ctx.createBufferSource();
@@ -29,10 +29,12 @@ export function ensureAudio() {
   return ctx;
 }
 
-function buildGraph(ac) {
+// The master chain. Exported so the WAV export can build an identical one on an
+// OfflineAudioContext, so downloads sound the same as playback.
+export function buildMaster(ac, reverbMix = 0.3) {
   const dry = ac.createGain();
   const send = ac.createGain();
-  send.gain.value = 0.25;
+  send.gain.value = sendLevel(reverbMix);
   const reverb = ac.createConvolver();
   reverb.buffer = makeImpulse(ac, 2.6, 3.2);
   const wet = ac.createGain();
@@ -77,9 +79,13 @@ function makeImpulse(ac, seconds, decay) {
   return ir;
 }
 
+// 0..1 knob -> send level. Above ~0.6 send it starts to wash out, so cap there.
+function sendLevel(mix) {
+  return mix * 0.6;
+}
+
 export function setReverbMix(amount) {
-  // 0..1 knob -> send level. Above ~0.6 send it starts to wash out, so cap there.
-  if (nodes) nodes.send.gain.setTargetAtTime(amount * 0.6, ctx.currentTime, 0.05);
+  if (nodes) nodes.send.gain.setTargetAtTime(sendLevel(amount), ctx.currentTime, 0.05);
 }
 
 export function dryBus() {

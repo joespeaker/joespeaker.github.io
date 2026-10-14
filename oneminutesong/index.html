@@ -4,7 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>One Minute Song</title>
-    <meta name="description" content="Spin a prompt, then build a song loop in 60 seconds.">
+    <meta name="description" content="Spin a prompt, then build a song loop in 60 seconds. Works on your phone, nothing to install.">
+    <meta name="theme-color" content="#e8611c">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="One Minute Song">
+    <meta property="og:title" content="One Minute Song">
+    <meta property="og:description" content="Spin a prompt. Build the song in 60 seconds. Tap play on what someone made for you.">
+    <meta property="og:url" content="https://joebieker.com/oneminutesong/">
+    <meta property="og:image" content="https://joebieker.com/oneminutesong/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="One Minute Song: a cassette label with a 60 second countdown ring">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://joebieker.com/oneminutesong/">
     <link rel="icon" type="image/png" href="../imgs/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -165,8 +177,34 @@
         </div>
         <div class="actions">
             <button type="button" class="big-btn" id="replay">▶ Play it</button>
-            <button type="button" class="key wide" id="tinker">Keep tinkering</button>
-            <button type="button" class="text-btn" id="again">Spin again</button>
+            <div class="pair">
+                <button type="button" class="key wide" id="share">Share link</button>
+                <button type="button" class="key wide" id="download">Download audio</button>
+            </div>
+            <p class="status" id="result-status" aria-live="polite"></p>
+            <div class="pair">
+                <button type="button" class="text-btn" id="tinker">Keep tinkering</button>
+                <button type="button" class="text-btn" id="again">Spin again</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Listen (opened from a share link) -->
+    <section class="screen" id="screen-listen" aria-labelledby="listen-title" hidden>
+        <div class="jcard">
+            <span class="jcard-label">Someone sent you a song</span>
+            <h2 class="jcard-title as-text" id="listen-title"></h2>
+            <p class="jcard-prompt" id="listen-prompt"></p>
+            <dl class="jcard-specs" id="listen-specs"></dl>
+        </div>
+        <div class="actions">
+            <button type="button" class="big-btn" id="listen-play">▶ Play it</button>
+            <button type="button" class="key wide" id="make-own">Make your own</button>
+            <div class="pair">
+                <button type="button" class="text-btn" id="remix">Remix this one</button>
+                <button type="button" class="text-btn" id="listen-download">Download audio</button>
+            </div>
+            <p class="status" id="listen-status" aria-live="polite"></p>
         </div>
     </section>
 

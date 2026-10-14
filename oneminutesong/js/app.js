@@ -2,11 +2,13 @@ import {
   KEY_NAMES, diatonicChords, chordName, chordNotes, chordIntervals, pretty, VARIANTS, keyName,
 } from './theory.js';
 import { voiceChord, voiceProgression } from './voicing.js';
-import { ensureAudio, dryBus, setReverbMix } from './audio/engine.js';
+import { ensureAudio, dryBus, setReverbMix, buildMaster } from './audio/engine.js';
 import { SYNTHS, SYNTH_IDS, BASS, bassMidi, createSynthRack } from './audio/synths.js';
 import { Scheduler } from './audio/scheduler.js';
 import { KITS, KIT_IDS, PATTERN_IDS, PATTERN_LABELS, hitsAt, createDrumRack } from './audio/drums.js';
 import { REELS, loadPrompts, listFor, pickOther, promptSentence, titleFromTopic } from './roulette.js';
+import { encodeSong, decodeSong } from './share.js';
+import { encodeWav } from './wav.js';
 
 const state = {
   keyPc: 0,
@@ -415,16 +417,21 @@ function auditionDrums() {
 }
 
 const patternsEl = $('#patterns');
-radioRow($('#kits'),
+
+function syncPatternsEnabled() {
+  patternsEl.classList.toggle('off', state.kit === 'none');
+  patternsEl.querySelectorAll('button').forEach((b) => { b.disabled = state.kit === 'none'; });
+}
+
+const renderKits = radioRow($('#kits'),
   () => [{ id: 'none', label: 'None' }, ...KIT_IDS.map((id) => ({ id, label: KITS[id].label }))],
   () => state.kit,
   (id) => {
     state.kit = id;
-    patternsEl.classList.toggle('off', id === 'none');
-    patternsEl.querySelectorAll('button').forEach((b) => { b.disabled = id === 'none'; });
+    syncPatternsEnabled();
     auditionDrums();
   });
-radioRow(patternsEl,
+const renderPatterns = radioRow(patternsEl,
   () => PATTERN_IDS.map((id) => ({ id, label: PATTERN_LABELS[id] })),
   () => state.pattern,
   (id) => { state.pattern = id; auditionDrums(); });
@@ -707,6 +714,11 @@ function scheduleDrums(target, s, t, stepDur) {
 }
 
 function onStep(step, t, stepDur) {
+  scheduleStep(step, t, stepDur, take, drumTake);
+}
+
+// Everything that sounds on one 16th step. Shared by live playback and the WAV export.
+function scheduleStep(step, t, stepDur, synthTarget, drumTarget) {
   const bar = Math.floor(step / 16) % state.barCount;
   const s = step % 16;
   const b = state.bars[bar];
@@ -714,15 +726,15 @@ function onStep(step, t, stepDur) {
   if (b) {
     const notes = voicingsForTimeline()[bar];
     for (const [at, len] of SYNTHS[state.synth].rhythm) {
-      if (at === s) take.chord(state.synth, notes, ts, len * stepDur);
+      if (at === s) synthTarget.chord(state.synth, notes, ts, len * stepDur);
     }
     if (state.bass) {
       for (const [at, len] of BASS.rhythm) {
-        if (at === s) take.bass(bassMidi(chords[b.degree].rootPc), ts, len * stepDur);
+        if (at === s) synthTarget.bass(bassMidi(chords[b.degree].rootPc), ts, len * stepDur);
       }
     }
   }
-  scheduleDrums(drumTake, s, t, stepDur);
+  scheduleDrums(drumTarget, s, t, stepDur);
 }
 
 function clearPlayhead() {
@@ -817,7 +829,9 @@ const flow = {
 
 try { flow.untimed = localStorage.getItem('oms-untimed') === '1'; } catch { /* storage blocked */ }
 
-const screens = { spin: $('#screen-spin'), studio: $('#screen-studio'), result: $('#screen-result') };
+const screens = {
+  spin: $('#screen-spin'), studio: $('#screen-studio'), result: $('#screen-result'), listen: $('#screen-listen'),
+};
 const studioEl = $('#studio');
 const clockEl = $('#clock');
 const clockFill = $('#clock-fill');
@@ -835,6 +849,7 @@ const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>'
 
 function promptHTML() {
   const { topic, style } = flow.values;
+  if (!topic || !style) return 'Make whatever you want.';
   return `Write a song about <b>${esc(topic)}</b> in the style of <b>${esc(style)}</b>.`;
 }
 
@@ -1047,15 +1062,12 @@ const titleEl = $('#title');
 const replayBtn = $('#replay');
 
 function updateReplayButton() {
-  if (screens.result.hidden) return;
-  replayBtn.textContent = playing ? '■ Stop' : '▶ Play it';
+  const label = playing ? '■ Stop' : '▶ Play it';
+  replayBtn.textContent = label;
+  $('#listen-play').textContent = label;
 }
 
-function goResult() {
-  timeUpEl.hidden = true;
-  lockStudio(false);
-  if (!flow.titleEdited) titleEl.value = titleFromTopic(flow.values.topic || 'untitled');
-  $('#result-prompt').textContent = `${promptSentence(flow.values)} ${constraintText()}`.trim();
+function specsHTML() {
   const bars = state.bars.slice(0, state.barCount).map((b) => (b ? slotName(b) : '–')).join('  ');
   const specs = [
     ['Key', `${pretty(keyName(state.keyPc, state.mode))} ${state.mode}`],
@@ -1064,7 +1076,21 @@ function goResult() {
     ['Sound', SYNTHS[state.synth].label],
     ['Drums', state.kit === 'none' ? 'None' : `${KITS[state.kit].label}, ${PATTERN_LABELS[state.pattern].toLowerCase()}`],
   ];
-  $('#result-specs').innerHTML = specs.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('');
+  return specs.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('');
+}
+
+function promptPlainText() {
+  if (!flow.values.topic || !flow.values.style) return '';
+  return `${promptSentence(flow.values)} ${constraintText()}`.trim();
+}
+
+function goResult() {
+  timeUpEl.hidden = true;
+  lockStudio(false);
+  if (!flow.titleEdited) titleEl.value = titleFromTopic(flow.values.topic || 'untitled');
+  $('#result-prompt').textContent = promptPlainText();
+  $('#result-specs').innerHTML = specsHTML();
+  $('#result-status').textContent = '';
   showScreen('result');
   updateReplayButton();
   titleEl.focus({ preventScroll: true });
@@ -1098,6 +1124,213 @@ untimedEl.addEventListener('change', () => {
   renderPrompt();
 });
 
+/* ---------- Share links ---------- */
+
+function currentTitle() {
+  return titleEl.value.trim() || titleFromTopic(flow.values.topic || 'untitled');
+}
+
+function songState() {
+  return {
+    keyPc: state.keyPc,
+    mode: state.mode,
+    barCount: state.barCount,
+    bars: state.bars.map((b) => (b ? { ...b } : null)),
+    synth: state.synth,
+    kit: state.kit,
+    pattern: state.pattern,
+    tempo: state.tempo,
+    swing: state.swing,
+    reverb: state.reverb,
+    bass: state.bass,
+    topic: flow.values.topic || '',
+    style: flow.values.style || '',
+    constraint: flow.constraintOn ? flow.values.constraint || '' : '',
+    title: currentTitle(),
+  };
+}
+
+function setSlider(id, value, text) {
+  $(`#${id}`).value = String(value);
+  $(`#${id}-out`).textContent = text;
+}
+
+function applySong(song) {
+  stopTransport();
+  Object.assign(state, {
+    keyPc: song.keyPc, mode: song.mode, barCount: song.barCount, synth: song.synth, kit: song.kit,
+    pattern: song.pattern, tempo: song.tempo, swing: song.swing, reverb: song.reverb, bass: song.bass,
+  });
+  resetVariants();
+  state.bars = song.bars.map((b) => (b ? { ...b } : null));
+  fitBarsToKey();
+  picked = null;
+  flow.values = { topic: song.topic || null, style: song.style || null, constraint: song.constraint || null };
+  flow.constraintOn = Boolean(song.constraint);
+  $('#constraint-on').checked = flow.constraintOn;
+  titleEl.value = song.title;
+  flow.titleEdited = Boolean(song.title);
+
+  renderKeys();
+  renderPalette();
+  renderTimeline();
+  renderSynths();
+  renderKits();
+  renderPatterns();
+  syncPatternsEnabled();
+  setSlider('tempo', state.tempo, String(state.tempo));
+  setSlider('reverb', Math.round(state.reverb * 100), `${Math.round(state.reverb * 100)}%`);
+  setSlider('swing', Math.round(state.swing * 100), `${Math.round(state.swing * 100)}%`);
+  $('#bass').checked = state.bass;
+  setReverbMix(state.reverb);
+  for (const r of REELS) $(`#${r}-text`).textContent = flow.values[r] || '???';
+  renderPrompt();
+}
+
+function shareUrl() {
+  return `${location.origin}${location.pathname}#${encodeSong(songState())}`;
+}
+
+// Phones get the native share sheet; everyone else gets the link copied, with a
+// selectable fallback if the clipboard is blocked.
+async function shareSong(statusEl) {
+  const url = shareUrl();
+  const title = currentTitle();
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+  if (navigator.share && coarse) {
+    try {
+      await navigator.share({ title: `${title} · One Minute Song`, text: `I wrote "${title}" in 60 seconds.`, url });
+      statusEl.textContent = 'Shared.';
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    statusEl.textContent = 'Link copied. Paste it anywhere.';
+  } catch {
+    statusEl.innerHTML = '<label class="copy-field">Copy this link<input type="text" readonly></label>';
+    const input = statusEl.querySelector('input');
+    input.value = url;
+    input.focus();
+    input.select();
+  }
+}
+
+/* ---------- Audio export (offline render to WAV) ---------- */
+
+// Renders the loop twice through on an OfflineAudioContext with the same master chain
+// as live playback. More reliable than MediaRecorder: no codec differences (Safari),
+// no realtime wait, and the result is a plain WAV every app can open.
+async function renderWav(passes = 2) {
+  const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  if (!OAC) throw new Error('OfflineAudioContext unsupported');
+  const sampleRate = 44100;
+  const stepDur = 60 / state.tempo / 4;
+  const steps = state.barCount * 16 * passes;
+  const start = 0.05;
+  const tail = 2.5;
+  const seconds = start + steps * stepDur + tail;
+  const off = new OAC(2, Math.ceil(sampleRate * seconds), sampleRate);
+  const master = buildMaster(off, state.reverb);
+  const synthTake = createSynthRack(off, master.dry).createTake();
+  const drumTakeOff = createDrumRack(off, master.dry).createTake();
+  for (let i = 0; i < steps; i++) {
+    scheduleStep(i % (state.barCount * 16), start + i * stepDur, stepDur, synthTake, drumTakeOff);
+  }
+  // Fade the reverb tail out cleanly.
+  master.out.gain.setValueAtTime(master.out.gain.value, seconds - 1.2);
+  master.out.gain.linearRampToValueAtTime(0, seconds);
+  const buf = await off.startRendering();
+  const channels = Array.from({ length: buf.numberOfChannels }, (_, ch) => buf.getChannelData(ch));
+  return encodeWav(channels, sampleRate);
+}
+
+function fileSlug(title) {
+  // Fold accents to plain letters (Café -> cafe) before dropping everything else.
+  return (title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'one-minute-song').slice(0, 50);
+}
+
+async function downloadAudio(btn, statusEl) {
+  btn.disabled = true;
+  const label = btn.textContent;
+  btn.textContent = 'Rendering…';
+  statusEl.textContent = '';
+  try {
+    const wav = await renderWav();
+    const name = `${fileSlug(currentTitle())}.wav`;
+    const blobUrl = URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }));
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+    statusEl.textContent = `Saved ${name}.`;
+  } catch {
+    statusEl.textContent = "This browser couldn't render the audio. Try Chrome, Safari or Firefox.";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+}
+
+$('#share').addEventListener('click', () => shareSong($('#result-status')));
+$('#download').addEventListener('click', (e) => downloadAudio(e.currentTarget, $('#result-status')));
+
+/* ---------- Listen view (opened from a share link) ---------- */
+
+function showListen(song) {
+  applySong(song);
+  $('#listen-title').textContent = song.title || 'Untitled';
+  $('#listen-prompt').textContent = promptPlainText();
+  $('#listen-specs').innerHTML = specsHTML();
+  $('#listen-status').textContent = '';
+  document.title = `${song.title || 'Untitled'} · One Minute Song`;
+  showScreen('listen');
+  updateReplayButton();
+}
+
+function clearShareHash() {
+  history.replaceState(null, '', location.pathname + location.search);
+  document.title = 'One Minute Song';
+}
+
+$('#listen-play').addEventListener('click', () => {
+  if (playing) stopTransport();
+  else startTransport({ once: true });
+});
+$('#listen-download').addEventListener('click', (e) => downloadAudio(e.currentTarget, $('#listen-status')));
+$('#make-own').addEventListener('click', () => {
+  clearShareHash();
+  stopTransport();
+  resetSong();
+  flow.values = { topic: null, style: null, constraint: null };
+  flow.constraintOn = true;
+  $('#constraint-on').checked = true;
+  for (const r of REELS) $(`#${r}-text`).textContent = '???';
+  flow.fresh = true;
+  renderPrompt();
+  showScreen('spin');
+  $('#spin').focus();
+});
+$('#remix').addEventListener('click', () => {
+  clearShareHash();
+  stopTransport();
+  flow.fresh = false;
+  lockStudio(false);
+  $('#studio-prompt').innerHTML = promptHTML() + (constraintText() ? `<br>${esc(constraintText())}` : '');
+  showScreen('studio');
+  showUntimedClock();
+});
+
+window.addEventListener('hashchange', () => {
+  const song = decodeSong(location.hash);
+  if (song) showListen(song);
+});
+
 /* ---------- Boot ---------- */
 
 resetVariants();
@@ -1110,3 +1343,5 @@ loadPrompts().then((p) => {
   flow.prompts = p;
   renderPrompt();
 });
+const sharedSong = decodeSong(location.hash);
+if (sharedSong) showListen(sharedSong);
