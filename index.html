@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joe Bieker</title>
-    <meta name="description" content="Joe Bieker builds internal apps at DH Pace in Olathe, Kansas, makes music as jspeaker, and runs KC Social Volleyball.">
+    <meta name="description" content="Joe Bieker's corner of the internet. Resume, music as jspeaker, KC Social Volleyball, and whatever I'm building next.">
     <meta name="author" content="Joe Bieker">
     <meta property="og:title" content="Joe Bieker">
-    <meta property="og:description" content="Systems analyst by day. Songwriter, volleyball organizer and smart home tinkerer the rest of the time.">
+    <meta property="og:description" content="Resume, music, volleyball, and whatever I'm building next.">
     <meta property="og:url" content="https://joebieker.com/">
     <meta property="og:type" content="website">
     <link rel="canonical" href="https://joebieker.com/">
@@ -30,17 +30,14 @@
         gtag('config', 'G-JDQKB8TRSR');
     </script>
 </head>
-<body>
+<body class="home">
 
 <header class="site-header">
     <div class="wrap">
-        <a class="brand" href="#top">joe bieker<span>.</span></a>
+        <a class="brand" href="/">joe bieker<span>.</span></a>
         <nav class="site-nav" aria-label="Main">
-            <a href="#work">Work</a>
-            <a href="#projects" class="hide-sm">Projects</a>
-            <a href="#off-the-clock" class="hide-sm">Off the clock</a>
-            <a href="#contact">Contact</a>
-            <a href="Joe%20Bieker%20-%20Resume.pdf">Resume</a>
+            <a href="resume/">Resume</a>
+            <a href="mailto:joebieker2486@outlook.com">Email</a>
             <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Lights off">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
             </button>
@@ -48,290 +45,48 @@
     </div>
 </header>
 
-<main id="top" class="wrap">
+<main class="wrap">
 
     <section class="intro">
         <p class="hi">hey there 👋</p>
         <h1>I'm Joe.</h1>
         <p class="lede">
-            By day I'm a systems analyst at <a href="https://www.dhpace.com/">DH Pace</a> in Olathe, building
-            the <mark>internal apps people actually use to get their work done</mark>. Approvals, forms,
-            integrations, and the database holding it all together.
+            I build internal apps for a living, write songs as jspeaker, and run a volleyball club in
+            Kansas City. This is my <mark>little corner of the internet</mark>, and I'll keep adding to it.
         </p>
-        <p class="lede">
-            The rest of the time I'm writing songs, playing ball, organizing a volleyball club, or messing
-            with my Home Assistant setup. Former college athlete, Overland Park local.
-        </p>
-
-        <div class="now">
-            <h2>Right now</h2>
-            <ul>
-                <li><span>→</span>Growing PaceX, the platform behind 40+ of DH Pace's internal apps</li>
-                <li><span>→</span>Putting out my debut album, <em>Letters to a Ghost</em>, as jspeaker</li>
-                <li><span>→</span>Running <a href="https://www.instagram.com/kcsocialvolleyball/">KC Social Volleyball</a>, free sand volleyball in KC</li>
-                <li><span>→</span>Starting a YouTube channel with my roommates</li>
-            </ul>
-        </div>
-
-        <div class="intro-links">
-            <a href="https://www.linkedin.com/in/joseph-bieker/">LinkedIn</a>
-            <a href="https://github.com/joespeaker">GitHub</a>
-            <a href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX">Spotify</a>
-            <a href="https://www.instagram.com/joe.speaker/">Instagram</a>
-        </div>
     </section>
 
-    <section class="section" id="work">
-        <h2>Work<small>where I've been</small></h2>
-        <div>
-
-            <article class="job">
-                <div class="job-head">
-                    <h3>DH Pace Company</h3>
-                    <span class="meta">2024 – now</span>
-                </div>
-                <p class="job-where">Olathe, KS · Hybrid</p>
-
-                <div class="role">
-                    <div class="role-head">
-                        <h4>Systems Analyst</h4>
-                        <span class="meta">Nov 2024 – Present</span>
-                    </div>
-                    <ul>
-                        <li>I own PaceX, our Oracle APEX platform. It's grown to 40+ apps used by about 300 people. It started as a bunch of one-off tools, so I pulled them into one hub with shared templates. New apps now start from something that already works.</li>
-                        <li>Most of my week is turning "here's how we do it now" (usually a spreadsheet and a lot of email) into an actual app with approvals, notifications, file uploads and the right people seeing the right stuff.</li>
-                        <li>The logic lives in PL/SQL and ORDS REST APIs. Newer front ends are React and TypeScript.</li>
-                        <li>I build the integrations between our systems in Oracle Integration Cloud so nobody has to retype data from one place into another.</li>
-                        <li>Set up our GitHub Actions deploys and a release process with QA. When something breaks in production, I'm usually the one digging in.</li>
-                    </ul>
-                    <p class="stack">PL/SQL · Oracle APEX · ORDS · OIC · React · TypeScript · GitHub Actions</p>
-                </div>
-
-                <div class="role">
-                    <div class="role-head">
-                        <h4>Business Analyst, Support</h4>
-                        <span class="meta">Apr 2024 – Nov 2024</span>
-                    </div>
-                    <p>Started on the support team and ended up building the first version of PaceX: forms and small apps in APEX, built by sitting with the people who'd use them. HTML, CSS and JavaScript up front, PL/SQL underneath.</p>
-                </div>
-            </article>
-
-            <article class="job">
-                <div class="job-head">
-                    <h3>Playfair Data</h3>
-                    <span class="meta">Jun – Aug 2023</span>
-                </div>
-                <p class="job-where">Data Engineering Intern · Overland Park, KS</p>
-                <p>Spent the summer on the backend of a Google Analytics 4 dashboard. The GA4 API had plenty of limits, so I got very familiar with its docs. I wrote SQL to shape raw events into something Tableau could use, built Tableau Prep and Alteryx flows for a white-label dataset, and threw together a Flask portal on Tableau's REST API in the last few weeks.</p>
-                <p class="stack">SQL · Tableau Prep · Alteryx · BigQuery · Python · Flask</p>
-            </article>
-
-            <article class="job">
-                <div class="job-head">
-                    <h3>Podium Education</h3>
-                    <span class="meta">2021 – 2023</span>
-                </div>
-                <p class="job-where">Remote · Part-time through college</p>
-
-                <div class="role">
-                    <div class="role-head">
-                        <h4>HelpHub Specialist</h4>
-                        <span class="meta">Oct 2021 – May 2023</span>
-                    </div>
-                    <p>Helped students get unstuck in Tableau, SQL, Python, HTML/CSS, JavaScript and Excel over chat. 900+ conversations, 96% rating. I also built a little Chrome extension (WhosIn?) so the team could see who was on shift, and helped keep the 500+ video library organized.</p>
-                </div>
-
-                <div class="role">
-                    <div class="role-head">
-                        <h4>Academic Support Specialist</h4>
-                        <span class="meta">May – Aug 2021</span>
-                    </div>
-                    <p>Graded data analysis projects and beta tested new courses before students saw them.</p>
-                </div>
-            </article>
-
-            <article class="job">
-                <div class="job-head">
-                    <h3>Greenfield Growth Partners</h3>
-                    <span class="meta">Nov 2022 – Feb 2023</span>
-                </div>
-                <p class="job-where">Data Analyst Intern · Olathe, KS</p>
-                <p>Built a Power Apps prototype for submitting property info. Submissions landed in a SharePoint list and Power Automate fired off the emails.</p>
-                <p class="stack">Power Apps · Power Automate · SharePoint</p>
-            </article>
-
-            <article class="job">
-                <div class="job-head">
-                    <h3>QED Wealth Solutions</h3>
-                    <span class="meta">Nov 2022 – Jan 2023</span>
-                </div>
-                <p class="job-where">Web Developer · Freelance</p>
-                <p>My first real client. Built <a href="https://www.qedwealthsolutions.com">qedwealthsolutions.com</a> from scratch, hosted it on AWS Amplify, and went back and forth on tweaks until it was right.</p>
-                <p class="stack">HTML · CSS · Bootstrap · JavaScript · AWS</p>
-            </article>
-
-            <article class="job">
-                <div class="job-head">
-                    <h3>Benedictine College</h3>
-                    <span class="meta">2022 – 2023</span>
-                </div>
-                <p class="job-where">Atchison, KS</p>
-
-                <div class="role">
-                    <div class="role-head">
-                        <h4>Campus Activities Board</h4>
-                        <span class="meta">Aug 2022 – May 2023</span>
-                    </div>
-                    <p>Helped run the campus traditions for the year, and was on the small crew that put on SpringFest, including booking the artist.</p>
-                </div>
-
-                <div class="role">
-                    <div class="role-head">
-                        <h4>Website Editor</h4>
-                        <span class="meta">Aug – Dec 2022</span>
-                    </div>
-                    <p>Kept pages on the college website up to date.</p>
-                </div>
-            </article>
-
+    <div class="tiles">
+        <a class="tile" href="resume/">
+            <span class="meta">work</span>
+            <h3>Resume</h3>
+            <p>Where I've worked, what I've built, and how to reach me.</p>
+            <span class="go">Read it →</span>
+        </a>
+        <a class="tile" href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX">
+            <span class="meta">music</span>
+            <h3>jspeaker</h3>
+            <p>Alt / indie-pop. Debut album <em>Letters to a Ghost</em> is rolling out now.</p>
+            <span class="go">Listen on Spotify ↗</span>
+        </a>
+        <a class="tile" href="https://www.instagram.com/kcsocialvolleyball/">
+            <span class="meta">volleyball</span>
+            <h3>KC Social Volleyball</h3>
+            <p>Free sand volleyball in Kansas City. Show up, play, meet people.</p>
+            <span class="go">@kcsocialvolleyball ↗</span>
+        </a>
+        <a class="tile" href="https://github.com/joespeaker">
+            <span class="meta">code</span>
+            <h3>GitHub</h3>
+            <p>Side projects, experiments, and the source for this site.</p>
+            <span class="go">github.com/joespeaker ↗</span>
+        </a>
+        <div class="tile soon">
+            <span class="meta">coming soon</span>
+            <h3>Something new</h3>
+            <p>Still deciding what goes here. Check back.</p>
         </div>
-    </section>
-
-    <section class="section" id="projects">
-        <h2>Projects<small>stuff I built for fun (or a grade)</small></h2>
-        <div class="projects">
-            <a class="project" href="https://github.com/joespeaker/flask-app">
-                <h3>SloVerb</h3>
-                <span class="arrow" aria-hidden="true">↗</span>
-                <p>Paste a YouTube link, drag some sliders, get a slowed + reverb version of the song.</p>
-                <span class="stack">Python · Flask · JavaScript</span>
-            </a>
-            <a class="project" href="https://github.com/joespeaker/shorts-automation/tree/main">
-                <h3>Shorts Automation</h3>
-                <span class="arrow" aria-hidden="true">↗</span>
-                <p>A script that cuts parkour clips into YouTube Shorts, slaps branding on them, and builds compilations without me touching an editor.</p>
-                <span class="stack">Python · MoviePy · Pillow</span>
-            </a>
-            <a class="project" href="https://github.com/joespeaker/chromeExtension">
-                <h3>WhosIn?</h3>
-                <span class="arrow" aria-hidden="true">↗</span>
-                <p>Chrome extension for the Podium support team that pulled from Airtable to show who was working at the moment.</p>
-                <span class="stack">JavaScript · Chrome Extensions · Airtable API</span>
-            </a>
-            <div class="project">
-                <h3>Registrar forms (senior capstone)</h3>
-                <span class="arrow" aria-hidden="true">↗</span>
-                <p>Took Benedictine's paper registrar forms (drop/add, major change, advisor change) online with my capstone team, plus a simple form builder to crank out new ones faster.</p>
-                <span class="stack">Django · Python · Formstack</span>
-            </div>
-            <div class="project">
-                <h3>UBBA stats &amp; rankings</h3>
-                <span class="arrow" aria-hidden="true">↗</span>
-                <p>Stats and power rankings for Benedictine's intramural basketball league. Teams submitted scores through a Google Form and the standings updated themselves.</p>
-                <span class="stack">Google Sheets · Google Forms</span>
-            </div>
-            <a class="project" href="https://joebieker.com/cropcircle.us">
-                <h3>CropCircle.us</h3>
-                <span class="arrow" aria-hidden="true">↗</span>
-                <p>Storefront for American-made plant protectors.</p>
-                <span class="stack">HTML · CSS · Bootstrap</span>
-            </a>
-        </div>
-    </section>
-
-    <section class="section" id="off-the-clock">
-        <h2>Off the clock<small>the fun part</small></h2>
-        <div>
-            <div class="tiles">
-                <a class="tile" href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX">
-                    <span class="meta">music</span>
-                    <h3>jspeaker</h3>
-                    <p>I write and record alt / indie-pop. My debut album <em>Letters to a Ghost</em> is rolling out now.</p>
-                    <span class="go">Listen on Spotify ↗</span>
-                </a>
-                <a class="tile" href="https://www.instagram.com/kcsocialvolleyball/">
-                    <span class="meta">volleyball</span>
-                    <h3>KC Social Volleyball</h3>
-                    <p>A free, come-as-you-are sand volleyball club I started in Kansas City. Show up, play, meet people.</p>
-                    <span class="go">@kcsocialvolleyball ↗</span>
-                </a>
-                <div class="tile">
-                    <span class="meta">video</span>
-                    <h3>YouTube with the roommates</h3>
-                    <p>Me and my two roommates are building a channel together. More on that soon.</p>
-                </div>
-                <div class="tile">
-                    <span class="meta">tinkering</span>
-                    <h3>Smart home stuff</h3>
-                    <p>Home Assistant, a few Raspberry Pis and ESP32s, and more automations than any apartment needs.</p>
-                </div>
-            </div>
-            <p class="tiles-note">Also: pickup basketball, biking, rec kickball, and gaming with the same friends since forever.</p>
-        </div>
-    </section>
-
-    <section class="section" id="education">
-        <h2>School</h2>
-        <div>
-            <div class="school">
-                <h3><a href="https://benedictine.edu/">Benedictine College</a></h3>
-                <p>B.A. Computer Science <span class="meta">· 2018 – 2023</span></p>
-                <p class="also">Ran track. Also Student Government, Campus Activities Board, Disc Golf Club president, and Bible study.</p>
-            </div>
-            <div class="school">
-                <h3><a href="https://fcsacredheart.org/">Falls City Sacred Heart</a></h3>
-                <p>High school, 3.99 GPA <span class="meta">· 2014 – 2018</span></p>
-                <p class="also">Football, basketball, track, band, choir, NHS and Student Council. I didn't sleep much.</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="section" id="certifications">
-        <h2>Certifications</h2>
-        <ul class="certs">
-            <li><span><a href="https://www.credly.com/badges/8d451fb7-304d-498c-90b2-8fd20c250742/linked_in_profile">Data Engineering Practitioner</a> <span class="issuer">· Playfair Data</span></span><span class="meta">Jul 2023</span></li>
-            <li><span><a href="https://www.credly.com/badges/90bed88f-7323-4a40-9b54-555bfa10798c/linked_in_profile">Alteryx Foundational</a> <span class="issuer">· Alteryx</span></span><span class="meta">Jul 2023</span></li>
-            <li><span><a href="https://skillshop.exceedlms.com/profiles/ed8d750ed5af4b2b9900696eb126e7c8">Google Analytics IQ</a> <span class="issuer">· Google</span></span><span class="meta">Nov 2023</span></li>
-            <li><span><a href="https://www.linkedin.com/learning/certificates/0f4b048a1899f82dd452dcbb6ff7c3b181a8cbaecab293b6f49149d9804d7f84">Machine Learning with Python</a> <span class="issuer">· LinkedIn Learning</span></span><span class="meta">Apr 2023</span></li>
-            <li><span><a href="https://www.hackerrank.com/certificates/b114fb6b72ee">SQL (Intermediate)</a> <span class="issuer">· HackerRank</span></span><span class="meta">Apr 2022</span></li>
-            <li><span><a href="https://www.hackerrank.com/certificates/7a82bd7327cf">JavaScript (Basic)</a> <span class="issuer">· HackerRank</span></span><span class="meta">Feb 2022</span></li>
-            <li><span><a href="https://www.hackerrank.com/certificates/e5d365873066">Python (Basic)</a> <span class="issuer">· HackerRank</span></span><span class="meta">Nov 2021</span></li>
-            <li><span><a href="https://www.hackerrank.com/certificates/a7022653b485">Java (Basic)</a> <span class="issuer">· HackerRank</span></span><span class="meta">Apr 2021</span></li>
-            <li><span><a href="https://www.credential.net/9be89fd5-e51f-40a6-828e-98fb8ec5e30e">Excel Specialist</a> <span class="issuer">· Benedictine College</span></span><span class="meta">May 2020</span></li>
-        </ul>
-    </section>
-
-    <section class="section" id="references">
-        <h2>Kind words<small>from people I've worked with</small></h2>
-        <div>
-            <figure class="quote">
-                <blockquote>
-                    <p>Joe was an intern on my Data Engineering team at Playfair Data - he tackled the backend data of our Google Analytics 4 dashboard. Though the GA4 API threw many limitations our way, Joe was very flexible and dove right into the GA4 data and documentation to understand the API. His strength in technical aptitude can really be seen in his work and his ability to grasp new tools and projects very quickly. During his time with us, he learned Tableau Prep and even spent some time in Google Big Query. Overall, it was a pleasure to have Joe on our team!</p>
-                </blockquote>
-                <figcaption><a href="https://www.linkedin.com/in/arianacukier">Ariana Cukier, MSHI</a> · Associate Director, Data Engineering, Playfair Data</figcaption>
-            </figure>
-            <figure class="quote">
-                <blockquote>
-                    <p>Joe is super adaptable and dedicated to furthering his knowledge and growth. I enjoyed working with Joe in Podium Education's support and tutoring chatbot for roughly two years. He helped thousands of students, mainly in Excel, Tableau, HTML, CSS, and JavaScript. He was knowledgeable in every instance and made a huge impact.</p>
-                    <p>I genuinely admire Joe's adaptability. During his time at Podium Education, the curriculum and protocols underwent many phases, and he quickly adjusted to those changing circumstances. He often wanted to go the extra mile and learn new material. Joe is a solid asset to any team.</p>
-                </blockquote>
-                <figcaption><a href="https://www.linkedin.com/in/amy-sparent/">Amy Sparent</a> · Academic Operations Manager, Podium Education</figcaption>
-            </figure>
-        </div>
-    </section>
-
-    <section class="section contact" id="contact">
-        <h2>Say hi</h2>
-        <div>
-            <p>Work stuff, a volleyball question, or you just want to talk music. Email's the easiest way to get me.</p>
-            <p class="big"><a href="mailto:joebieker2486@outlook.com">joebieker2486@outlook.com</a></p>
-            <dl>
-                <dt>Phone</dt><dd><a href="tel:+14022457857">402-245-7857</a></dd>
-                <dt>LinkedIn</dt><dd><a href="https://www.linkedin.com/in/joseph-bieker/">in/joseph-bieker</a></dd>
-                <dt>Resume</dt><dd><a href="Joe%20Bieker%20-%20Resume.pdf">Download PDF</a></dd>
-            </dl>
-        </div>
-    </section>
+    </div>
 
 </main>
 
