@@ -6,6 +6,7 @@ import { ensureAudio, dryBus, setReverbMix } from './audio/engine.js';
 import { SYNTHS, SYNTH_IDS, BASS, bassMidi, createSynthRack } from './audio/synths.js';
 import { Scheduler } from './audio/scheduler.js';
 import { KITS, KIT_IDS, PATTERN_IDS, PATTERN_LABELS, hitsAt, createDrumRack } from './audio/drums.js';
+import { REELS, loadPrompts, listFor, pickOther, promptSentence, titleFromTopic } from './roulette.js';
 
 const state = {
   keyPc: 0,
@@ -742,33 +743,359 @@ function drawPlayhead() {
   requestAnimationFrame(drawPlayhead);
 }
 
-function setPlaying(on) {
+// Start the transport. With once: true it plays the timeline a single time, then calls onEnd.
+function startTransport({ once = false, onEnd = null } = {}) {
   audio();
-  if (on === playing) return;
-  playing = on;
-  playBtn.setAttribute('aria-pressed', String(on));
-  playBtn.textContent = on ? '■ Stop' : '▶ Play';
-  if (on) {
-    take = rack.createTake();
-    drumTake = drumRack.createTake();
-    scheduler.start(0);
-    requestAnimationFrame(drawPlayhead);
-  } else {
-    scheduler.stop();
-    take.stop();
-    drumTake.stop();
-    take = null;
-    drumTake = null;
-    clearPlayhead();
+  if (playing) stopTransport();
+  playing = true;
+  playBtn.setAttribute('aria-pressed', 'true');
+  playBtn.textContent = '■ Stop';
+  take = rack.createTake();
+  drumTake = drumRack.createTake();
+  const opts = {};
+  if (once) {
+    opts.maxSteps = state.barCount * 16;
+    opts.onDone = (endTime) => {
+      // Let the last notes ring a moment before wrapping up.
+      onceTimer = setTimeout(() => { stopTransport(); if (onEnd) onEnd(); }, (endTime - ctx.currentTime + 0.9) * 1000);
+    };
   }
+  scheduler.start(0, opts);
+  requestAnimationFrame(drawPlayhead);
+  updateReplayButton();
+}
+
+let onceTimer = null;
+
+function stopTransport() {
+  clearTimeout(onceTimer);
+  if (!playing) return;
+  playing = false;
+  playBtn.setAttribute('aria-pressed', 'false');
+  playBtn.textContent = '▶ Play';
+  scheduler.stop();
+  take.stop();
+  drumTake.stop();
+  take = null;
+  drumTake = null;
+  clearPlayhead();
+  updateReplayButton();
+}
+
+function setPlaying(on) {
+  if (on) startTransport(); else stopTransport();
 }
 
 playBtn.addEventListener('click', () => setPlaying(!playing));
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space' && e.target === document.body) {
+  if (e.code === 'Space' && e.target === document.body && !screens.studio.hidden && !studioEl.inert) {
     e.preventDefault();
     setPlaying(!playing);
   }
+});
+
+/* ---------- Flow: spin -> studio (60s clock) -> result ---------- */
+
+// ?clock=5 shortens the countdown for testing.
+const CLOCK_SECONDS = Math.max(1, Number(new URLSearchParams(location.search).get('clock')) || 60);
+const CLOCK_CIRC = 2 * Math.PI * 19;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+const flow = {
+  prompts: null,
+  values: { topic: null, style: null, constraint: null },
+  locked: { topic: false, style: false, constraint: false },
+  constraintOn: true,
+  spinning: 0,
+  untimed: false,
+  timerEnd: 0,
+  timerRaf: 0,
+  lastAnnounced: null,
+  titleEdited: false,
+  fresh: true,     // on the spin screen waiting for a Spin (first visit or after "Spin again")
+};
+
+try { flow.untimed = localStorage.getItem('oms-untimed') === '1'; } catch { /* storage blocked */ }
+
+const screens = { spin: $('#screen-spin'), studio: $('#screen-studio'), result: $('#screen-result') };
+const studioEl = $('#studio');
+const clockEl = $('#clock');
+const clockFill = $('#clock-fill');
+const clockText = $('#clock-text');
+const timeUpEl = $('#time-up');
+const untimedEl = $('#untimed');
+untimedEl.checked = flow.untimed;
+
+function showScreen(name) {
+  for (const [key, el] of Object.entries(screens)) el.hidden = key !== name;
+  window.scrollTo(0, 0);
+}
+
+const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+function promptHTML() {
+  const { topic, style } = flow.values;
+  return `Write a song about <b>${esc(topic)}</b> in the style of <b>${esc(style)}</b>.`;
+}
+
+function constraintText() {
+  return flow.constraintOn && flow.values.constraint ? `Constraint: ${flow.values.constraint}.` : '';
+}
+
+function renderPrompt() {
+  const ready = flow.values.topic && flow.values.style;
+  $('#prompt-card').hidden = !ready;
+  if (ready) {
+    $('#prompt-line').innerHTML = promptHTML();
+    $('#constraint-line').textContent = constraintText();
+  }
+  const spun = ready && flow.spinning === 0 && !flow.fresh;
+  $('#spin').disabled = flow.spinning > 0 || !flow.prompts;
+  $('#spin').hidden = spun;
+  $('#start').hidden = !spun;
+  $('#respin').hidden = !spun;
+  $('#start').textContent = flow.untimed ? 'Start making' : 'Start the clock';
+  for (const r of REELS) {
+    const reel = document.querySelector(`[data-reel="${r}"]`);
+    reel.classList.toggle('locked', flow.locked[r]);
+    const lock = reel.querySelector('[data-lock]');
+    lock.setAttribute('aria-pressed', String(flow.locked[r]));
+    lock.setAttribute('aria-label', `${flow.locked[r] ? 'Unlock' : 'Lock'} ${r}`);
+  }
+  const cReel = document.querySelector('[data-reel="constraint"]');
+  cReel.classList.toggle('off', !flow.constraintOn);
+  if (!flow.constraintOn) $('#constraint-text').textContent = 'No constraint';
+  else if (flow.values.constraint && !cReel.classList.contains('spinning')) $('#constraint-text').textContent = flow.values.constraint;
+}
+
+function tick() {
+  // A tiny closed-hat click per reel step, like a mechanical counter.
+  if (previewDrums && ctx) previewDrums.hit('electro', 'hat', ctx.currentTime + 0.005, 0.18);
+}
+
+// Spin one reel: flick through entries, slowing down, then land on a fresh pick.
+function spinReel(r, duration) {
+  const list = listFor(flow.prompts, r);
+  const textEl = $(`#${r}-text`);
+  const reel = document.querySelector(`[data-reel="${r}"]`);
+  const final = pickOther(list, flow.values[r]);
+  flow.spinning++;
+  renderPrompt();
+  return new Promise((resolve) => {
+    const finish = () => {
+      flow.values[r] = final;
+      textEl.textContent = final;
+      reel.classList.remove('spinning');
+      reel.classList.remove('landed');
+      void reel.offsetWidth;
+      reel.classList.add('landed');
+      flow.spinning--;
+      renderPrompt();
+      resolve();
+    };
+    if (reduceMotion.matches) { finish(); return; }
+    reel.classList.add('spinning');
+    const start = performance.now();
+    let delay = 45;
+    const step = () => {
+      if (performance.now() - start >= duration) { finish(); return; }
+      textEl.textContent = list[Math.floor(Math.random() * list.length)];
+      tick();
+      delay *= 1.13;
+      setTimeout(step, delay);
+    };
+    step();
+  });
+}
+
+async function spinAll() {
+  if (flow.spinning || !flow.prompts) return;
+  audio();
+  flow.fresh = false;
+  const jobs = [];
+  let i = 0;
+  for (const r of REELS) {
+    if (flow.locked[r] && flow.values[r]) continue;
+    if (r === 'constraint' && !flow.constraintOn) continue;
+    jobs.push(spinReel(r, 700 + i * 350));
+    i++;
+  }
+  await Promise.all(jobs);
+  announce(`${promptSentence(flow.values)} ${constraintText()}`);
+  $('#start').focus();
+}
+
+$('#spin').addEventListener('click', spinAll);
+$('#respin').addEventListener('click', spinAll);
+
+$('#screen-spin').addEventListener('click', async (e) => {
+  const lock = e.target.closest('[data-lock]');
+  if (lock) {
+    const r = lock.dataset.lock;
+    flow.locked[r] = !flow.locked[r];
+    renderPrompt();
+    return;
+  }
+  const win = e.target.closest('[data-reroll]');
+  if (!win || flow.spinning || !flow.prompts) return;
+  const r = win.dataset.reroll;
+  if (flow.locked[r] || (r === 'constraint' && !flow.constraintOn)) return;
+  audio();
+  if (flow.values.topic && flow.values.style) flow.fresh = false;
+  await spinReel(r, 650);
+  if (flow.values.topic && flow.values.style) { flow.fresh = false; renderPrompt(); }
+  announce(r === 'constraint' ? constraintText() : promptSentence(flow.values));
+});
+
+$('#constraint-on').addEventListener('change', (e) => {
+  flow.constraintOn = e.target.checked;
+  if (flow.constraintOn && !flow.values.constraint && flow.prompts) {
+    flow.values.constraint = pickOther(listFor(flow.prompts, 'constraint'), null);
+  }
+  renderPrompt();
+});
+
+/* Studio + clock */
+
+function resetSong() {
+  stopTransport();
+  state.bars = Array(8).fill(null);
+  state.selected = null;
+  picked = null;
+  renderPalette();
+  renderTimeline();
+  flow.titleEdited = false;
+}
+
+function lockStudio(on) {
+  studioEl.inert = on;
+  studioEl.classList.toggle('locked', on);
+  $('#finish').disabled = on;
+}
+
+function startStudio() {
+  audio();
+  resetSong();
+  lockStudio(false);
+  $('#studio-prompt').innerHTML = promptHTML() + (constraintText() ? `<br>${esc(constraintText())}` : '');
+  showScreen('studio');
+  if (flow.untimed) showUntimedClock();
+  else startClock();
+}
+
+function showUntimedClock() {
+  stopClock();
+  clockEl.classList.remove('urgent');
+  clockEl.classList.add('untimed');
+  clockEl.setAttribute('aria-label', 'Untimed');
+  clockFill.style.strokeDashoffset = '0';
+  clockText.textContent = '∞';
+}
+
+function startClock() {
+  clockEl.classList.remove('untimed', 'urgent');
+  flow.timerEnd = performance.now() + CLOCK_SECONDS * 1000;
+  flow.lastAnnounced = null;
+  announce(`Clock started. ${CLOCK_SECONDS} seconds.`);
+  const frame = () => {
+    const left = Math.max(0, (flow.timerEnd - performance.now()) / 1000);
+    const secs = Math.ceil(left);
+    clockText.textContent = String(secs);
+    clockFill.style.strokeDashoffset = String(CLOCK_CIRC * (1 - left / CLOCK_SECONDS));
+    clockEl.classList.toggle('urgent', left <= 10);
+    clockEl.setAttribute('aria-label', `${secs} seconds left`);
+    if ([30, 10, 5].includes(secs) && flow.lastAnnounced !== secs) {
+      flow.lastAnnounced = secs;
+      announce(`${secs} seconds left.`);
+    }
+    if (left <= 0) { timeUp(); return; }
+    flow.timerRaf = requestAnimationFrame(frame);
+  };
+  flow.timerRaf = requestAnimationFrame(frame);
+}
+
+function stopClock() {
+  cancelAnimationFrame(flow.timerRaf);
+  flow.timerRaf = 0;
+}
+
+function songIsEmpty() {
+  return state.bars.slice(0, state.barCount).every((b) => !b) && state.kit === 'none';
+}
+
+// 0:00 (or Finish): lock the studio, play the loop once through, then show the result.
+function timeUp() {
+  stopClock();
+  clockEl.classList.remove('urgent');
+  clockText.textContent = '0';
+  stopTransport();
+  lockStudio(true);
+  if (sheet.open) sheet.close();
+  if (songIsEmpty()) { goResult(); return; }
+  announce("Time's up. Playing your song.");
+  timeUpEl.hidden = false;
+  timelineEl.scrollIntoView({ block: 'center', behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+  startTransport({ once: true, onEnd: goResult });
+}
+
+$('#skip').addEventListener('click', () => { stopTransport(); goResult(); });
+$('#finish').addEventListener('click', timeUp);
+
+/* Result */
+
+const titleEl = $('#title');
+const replayBtn = $('#replay');
+
+function updateReplayButton() {
+  if (screens.result.hidden) return;
+  replayBtn.textContent = playing ? '■ Stop' : '▶ Play it';
+}
+
+function goResult() {
+  timeUpEl.hidden = true;
+  lockStudio(false);
+  if (!flow.titleEdited) titleEl.value = titleFromTopic(flow.values.topic || 'untitled');
+  $('#result-prompt').textContent = `${promptSentence(flow.values)} ${constraintText()}`.trim();
+  const bars = state.bars.slice(0, state.barCount).map((b) => (b ? slotName(b) : '–')).join('  ');
+  const specs = [
+    ['Key', `${pretty(keyName(state.keyPc, state.mode))} ${state.mode}`],
+    ['Chords', bars],
+    ['Tempo', `${state.tempo} BPM`],
+    ['Sound', SYNTHS[state.synth].label],
+    ['Drums', state.kit === 'none' ? 'None' : `${KITS[state.kit].label}, ${PATTERN_LABELS[state.pattern].toLowerCase()}`],
+  ];
+  $('#result-specs').innerHTML = specs.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('');
+  showScreen('result');
+  updateReplayButton();
+  titleEl.focus({ preventScroll: true });
+}
+
+titleEl.addEventListener('input', () => { flow.titleEdited = true; });
+replayBtn.addEventListener('click', () => {
+  if (playing) stopTransport();
+  else startTransport({ once: true });
+});
+$('#tinker').addEventListener('click', () => {
+  stopTransport();
+  showScreen('studio');
+  showUntimedClock();
+});
+$('#again').addEventListener('click', () => {
+  stopTransport();
+  showScreen('spin');
+  flow.fresh = true;
+  renderPrompt();
+  $('#spin').focus();
+});
+
+$('#start').addEventListener('click', startStudio);
+
+untimedEl.addEventListener('change', () => {
+  flow.untimed = untimedEl.checked;
+  try { localStorage.setItem('oms-untimed', flow.untimed ? '1' : '0'); } catch { /* storage blocked */ }
+  // Switching on mid-run stops the clock; switching off applies to the next run.
+  if (flow.untimed && flow.timerRaf) showUntimedClock();
+  renderPrompt();
 });
 
 /* ---------- Boot ---------- */
@@ -778,3 +1105,8 @@ renderKeys();
 renderPalette();
 renderSynths();
 renderTimeline();
+renderPrompt();
+loadPrompts().then((p) => {
+  flow.prompts = p;
+  renderPrompt();
+});

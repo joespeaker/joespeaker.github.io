@@ -20,9 +20,14 @@ export class Scheduler {
     return 60 / this.getTempo() / 4; // 16th note
   }
 
-  start(startStep = 0) {
+  // maxSteps: stop after scheduling this many steps (play once through) and call
+  // onDone(endTime) with the audio time the last step finishes.
+  start(startStep = 0, { maxSteps = Infinity, onDone = null } = {}) {
     if (this.running) return;
     this.running = true;
+    this.remaining = maxSteps;
+    this.onDone = onDone;
+    this.lastVisual = null;
     this.step = startStep;
     this.nextTime = this.ctx.currentTime + 0.06;
     this.visualQueue = [];
@@ -40,11 +45,20 @@ export class Scheduler {
     if (!this.running) return;
     const horizon = this.ctx.currentTime + SCHEDULE_AHEAD;
     while (this.nextTime < horizon) {
+      if (this.remaining <= 0) {
+        // Finished a play-once pass: stop scheduling but keep the playhead queue draining.
+        this.running = false;
+        const done = this.onDone;
+        this.onDone = null;
+        if (done) done(this.nextTime);
+        return;
+      }
       const dur = this.stepDuration();
       this.onStep(this.step, this.nextTime, dur);
       this.visualQueue.push({ step: this.step, time: this.nextTime });
       this.nextTime += dur;
       this.step = (this.step + 1) % this.getTotalSteps();
+      this.remaining--;
     }
     this.timer = setTimeout(() => this.tick(), LOOKAHEAD_MS);
   }
