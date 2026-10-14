@@ -400,5 +400,7 @@ a.tile:hover h3 { color: var(--accent); }
 /* Home hub */
 .home .intro { padding-bottom: 40px; }
 .home .tiles { margin-bottom: 72px; }
-.tile.soon { background: none; border: 1.5px dashed var(--rule); }
-.tile.soon h3 { color: var(--muted); }
+.tile.feature { grid-column: 1 / -1; background: var(--ink); color: var(--bg); }
+.tile.feature .meta, .tile.feature p { color: color-mix(in srgb, var(--bg) 75%, transparent); }
+a.tile.feature:hover h3 { color: var(--accent); }
+.tile.feature .go { color: var(--bg); text-decoration: underline; text-underline-offset: 3px; }

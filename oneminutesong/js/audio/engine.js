@@ -2,7 +2,7 @@
 //
 //   synths ─┐            ┌─> reverb send ─> convolver ─┐
 //   bass ───┼─> dry bus ─┤                             ├─> glue comp ─> limiter ─> out ─> speakers
-//   drums ──┘            └─────────────────────────────┘                                └─> recorder (stage 6)
+//   drums ──┘            └─────────────────────────────┘                                └─> (WAV export rebuilds this chain offline)
 //
 
 let ctx = null;

@@ -6,7 +6,10 @@
   --ink: #1f211c;
   --ink-soft: #5b5e52;
   --line: #b9bbac;
-  --accent: #e8611c;      /* tape orange */
+  --accent: #bf4d0e;      /* tape orange (dark enough for light text on it) */
+  --accent-text: #9a3d0a; /* orange for text on light surfaces */
+  --bar-hl: #e3ad2c;      /* highlights on the inverted prompt/studio bar */
+  --bar-urgent: #ff7a6b;  /* last-10-seconds red on that bar */
   --accent-ink: #fff8ef;
   --meter: #e3ad2c;       /* VU mustard */
   --rec: #cf3326;         /* record red */
@@ -30,6 +33,9 @@
     --ink-soft: #a6a898;
     --line: #3d4037;
     --accent: #ff7d3a;
+    --accent-text: #ff8a4d;
+    --bar-hl: #7a4f00;
+    --bar-urgent: #a52217;
     --accent-ink: #1c1206;
     --meter: #f0c04a;
     --rec: #ff5a4a;
@@ -46,6 +52,9 @@
   --ink-soft: #a6a898;
   --line: #3d4037;
   --accent: #ff7d3a;
+  --accent-text: #ff8a4d;
+  --bar-hl: #7a4f00;
+  --bar-urgent: #a52217;
   --accent-ink: #1c1206;
   --meter: #f0c04a;
   --rec: #ff5a4a;
@@ -265,7 +274,7 @@ dialog.sheet::backdrop { background: rgba(10, 10, 8, .45); }
   border: 0;
   background: none;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   cursor: pointer;
   padding: 8px;
   min-height: 44px;
@@ -361,7 +370,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 32px
 }
 .bar-wrap .x::before { content: ""; position: absolute; inset: -8px; }
 .chord { touch-action: none; }
-.hint.nudge { animation: nudge .35s; color: var(--accent); }
+.hint.nudge { animation: nudge .35s; color: var(--accent-text); }
 @keyframes nudge { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
 .ghost {
@@ -488,7 +497,7 @@ body.dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; 
   padding: 14px 16px;
 }
 .prompt-line { margin: 0; font-size: 1.2rem; font-weight: 600; line-height: 1.35; text-wrap: balance; }
-.prompt-line b { color: var(--meter); font-weight: 700; }
+.prompt-line b { color: var(--bar-hl); font-weight: 700; }
 .constraint-line { margin: 8px 0 0; font-family: var(--mono); font-size: .8rem; opacity: .85; }
 .constraint-line:empty { display: none; }
 
@@ -517,13 +526,13 @@ body.dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; 
   overflow: hidden;
   min-width: 0;
 }
-.studio-prompt b { color: var(--meter); }
+.studio-prompt b { color: var(--bar-hl); }
 .clock { position: relative; width: 52px; height: 52px; }
 .clock svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .clock circle { fill: none; stroke-width: 5; }
 .clock-track { stroke: color-mix(in srgb, var(--panel) 20%, transparent); }
 .clock-fill {
-  stroke: var(--meter);
+  stroke: var(--bar-hl);
   stroke-linecap: round;
   stroke-dasharray: 119.38;
   stroke-dashoffset: 0;
@@ -538,8 +547,8 @@ body.dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; 
   font-size: 1rem;
   font-variant-numeric: tabular-nums;
 }
-.clock.urgent .clock-fill { stroke: var(--rec); }
-.clock.urgent .clock-text { color: var(--rec); }
+.clock.urgent .clock-fill { stroke: var(--bar-urgent); }
+.clock.urgent .clock-text { color: var(--bar-urgent); }
 .clock.urgent { animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 50% { transform: scale(1.08); } }
 .clock.untimed .clock-text { font-size: 1.3rem; }
@@ -600,6 +609,9 @@ body.dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; 
   padding: 4px 0;
   width: calc(100% - 8px);
   min-width: 0;
+  resize: none;
+  overflow: hidden;
+  display: block;
 }
 .jcard-title:focus { outline: none; border-bottom-color: var(--accent); }
 .jcard-prompt { margin: 0; color: var(--ink-soft); }
@@ -622,3 +634,5 @@ body.dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; 
   color: var(--ink);
 }
 .jcard-title.as-text { margin: 0; border-bottom-style: solid; }
+
+.screens { display: grid; gap: 14px; }

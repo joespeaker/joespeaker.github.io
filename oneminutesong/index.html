@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>One Minute Song</title>
     <meta name="description" content="Spin a prompt, then build a song loop in 60 seconds. Works on your phone, nothing to install.">
-    <meta name="theme-color" content="#e8611c">
+    <meta name="theme-color" content="#bf4d0e">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="One Minute Song">
     <meta property="og:title" content="One Minute Song">
@@ -31,6 +31,7 @@
         <p id="tagline">Spin a prompt. Build the song in 60 seconds.</p>
     </header>
 
+    <main class="screens">
     <!-- 1. Spin -->
     <section class="screen" id="screen-spin" aria-labelledby="spin-h">
         <h2 class="sr-only" id="spin-h">Spin for a prompt</h2>
@@ -171,7 +172,7 @@
         <h2 class="sr-only" id="result-h">Your song</h2>
         <div class="jcard">
             <label class="jcard-label" for="title">Song title</label>
-            <input class="jcard-title" id="title" type="text" maxlength="60" autocomplete="off" spellcheck="false">
+            <textarea class="jcard-title" id="title" rows="1" maxlength="60" autocomplete="off" spellcheck="false"></textarea>
             <p class="jcard-prompt" id="result-prompt"></p>
             <dl class="jcard-specs" id="result-specs"></dl>
         </div>
@@ -207,6 +208,8 @@
             <p class="status" id="listen-status" aria-live="polite"></p>
         </div>
     </section>
+
+    </main>
 
     <footer class="footer">
         <span>Made by <a href="https://joebieker.com">Joe Bieker</a></span>

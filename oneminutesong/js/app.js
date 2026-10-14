@@ -1092,11 +1092,25 @@ function goResult() {
   $('#result-specs').innerHTML = specsHTML();
   $('#result-status').textContent = '';
   showScreen('result');
+  fitTitle();
   updateReplayButton();
   titleEl.focus({ preventScroll: true });
 }
 
-titleEl.addEventListener('input', () => { flow.titleEdited = true; });
+// The title is a textarea so long names wrap instead of being cut off. Grow it to fit,
+// and treat Enter as "done" since titles are one line.
+function fitTitle() {
+  titleEl.style.height = 'auto';
+  titleEl.style.height = `${titleEl.scrollHeight}px`;
+}
+titleEl.addEventListener('input', () => {
+  flow.titleEdited = true;
+  titleEl.value = titleEl.value.replace(/\s*\n\s*/g, ' ');
+  fitTitle();
+});
+titleEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); titleEl.blur(); }
+});
 replayBtn.addEventListener('click', () => {
   if (playing) stopTransport();
   else startTransport({ once: true });
