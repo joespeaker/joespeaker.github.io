@@ -329,3 +329,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 32px
   pointer-events: none;
 }
 .strip.playing .playhead { opacity: 1; }
+
+/* Drum pickers */
+.opts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.opt { font-size: .85rem; font-weight: 600; padding: 8px 4px; }
+.opts.off { opacity: .45; }
+.opt:disabled { cursor: not-allowed; }

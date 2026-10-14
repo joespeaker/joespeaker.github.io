@@ -5,6 +5,7 @@ import { voiceChord, voiceProgression } from './voicing.js';
 import { ensureAudio, dryBus, setReverbMix } from './audio/engine.js';
 import { SYNTHS, SYNTH_IDS, BASS, bassMidi, createSynthRack } from './audio/synths.js';
 import { Scheduler } from './audio/scheduler.js';
+import { KITS, KIT_IDS, PATTERN_IDS, PATTERN_LABELS, hitsAt, createDrumRack } from './audio/drums.js';
 
 const state = {
   keyPc: 0,
@@ -15,6 +16,9 @@ const state = {
   tempo: 100,
   reverb: 0.3,
   bass: true,
+  kit: 'acoustic',    // or 'none'
+  pattern: 'basic',
+  swing: 0.15,
   loop: [0, 4, 5, 3], // stage 2 test loop: last 4 tapped degrees (starts as I V vi IV)
 };
 
@@ -48,6 +52,9 @@ let previewTake = null;
 let lastPreview = null;
 let scheduler = null;
 let take = null;
+let drumRack = null;
+let drumTake = null;
+let previewDrums = null;
 
 // Called from inside a tap/click/keypress so iOS lets audio start.
 function audio() {
@@ -55,6 +62,8 @@ function audio() {
     ctx = ensureAudio();
     rack = createSynthRack(ctx, dryBus());
     previewTake = rack.createTake();
+    drumRack = createDrumRack(ctx, dryBus());
+    previewDrums = drumRack.createTake();
     setReverbMix(state.reverb);
     scheduler = new Scheduler(ctx, {
       onStep,
@@ -336,6 +345,71 @@ $('#reverb').addEventListener('input', (e) => {
 });
 $('#bass').addEventListener('change', (e) => { state.bass = e.target.checked; });
 
+/* ---------- Drums ---------- */
+
+// Small helper for a row of radio-style tactile buttons with arrow-key support.
+function radioRow(el, items, getValue, onPick) {
+  function render() {
+    el.innerHTML = '';
+    for (const { id, label } of items()) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'key opt';
+      b.setAttribute('role', 'radio');
+      const on = id === getValue();
+      b.setAttribute('aria-checked', String(on));
+      b.tabIndex = on ? 0 : -1;
+      b.dataset.id = id;
+      b.textContent = label;
+      el.append(b);
+    }
+  }
+  el.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-id]');
+    if (b) { onPick(b.dataset.id); render(); el.querySelector(`[data-id="${b.dataset.id}"]`).focus(); }
+  });
+  el.addEventListener('keydown', (e) => {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    if (step === undefined) return;
+    e.preventDefault();
+    const ids = items().map((i) => i.id);
+    const next = ids[(ids.indexOf(getValue()) + step + ids.length) % ids.length];
+    onPick(next);
+    render();
+    el.querySelector(`[data-id="${next}"]`).focus();
+  });
+  render();
+  return render;
+}
+
+// Play one bar of the current pattern when nothing is running, so picks are audible.
+function auditionDrums() {
+  audio();
+  if (playing || state.kit === 'none') return;
+  const stepDur = 60 / state.tempo / 4;
+  const t0 = ctx.currentTime + 0.03;
+  for (let s = 0; s < 16; s++) scheduleDrums(previewDrums, s, t0 + s * stepDur, stepDur);
+}
+
+const patternsEl = $('#patterns');
+radioRow($('#kits'),
+  () => [{ id: 'none', label: 'None' }, ...KIT_IDS.map((id) => ({ id, label: KITS[id].label }))],
+  () => state.kit,
+  (id) => {
+    state.kit = id;
+    patternsEl.classList.toggle('off', id === 'none');
+    patternsEl.querySelectorAll('button').forEach((b) => { b.disabled = id === 'none'; });
+    auditionDrums();
+  });
+radioRow(patternsEl,
+  () => PATTERN_IDS.map((id) => ({ id, label: PATTERN_LABELS[id] })),
+  () => state.pattern,
+  (id) => { state.pattern = id; auditionDrums(); });
+$('#swing').addEventListener('input', (e) => {
+  state.swing = Number(e.target.value) / 100;
+  $('#swing-out').textContent = `${e.target.value}%`;
+});
+
 /* ---------- Test loop transport ---------- */
 
 const stripEl = $('#strip');
@@ -364,19 +438,42 @@ function voicingsForLoop() {
   return loopVoicings;
 }
 
+// Swing delays every off-beat 16th. 0 = straight, 1 = full triplet-ish shuffle.
+function swingOffset(s, stepDur) {
+  return s % 2 === 1 ? state.swing * stepDur * 0.5 : 0;
+}
+
+function scheduleDrums(target, s, t, stepDur) {
+  if (state.kit === 'none') return;
+  const kit = KITS[state.kit];
+  for (const { lane, velocity } of hitsAt(state.kit, state.pattern, s)) {
+    let when = t + swingOffset(s, stepDur);
+    let vel = velocity;
+    if (kit.feel) {
+      // Garage looseness: hats lean further behind the beat, everything drifts a little.
+      if ((lane === 'hat' || lane === 'open') && s % 2 === 1) when += kit.feel.swing * stepDur;
+      when += (Math.random() * 2 - 1) * kit.feel.jitter;
+      vel *= 1 - Math.random() * kit.feel.velocity;
+    }
+    target.hit(state.kit, lane, when, vel);
+  }
+}
+
 function onStep(step, t, stepDur) {
   const bar = Math.floor(step / 16) % state.loop.length;
   const s = step % 16;
   const degree = state.loop[bar];
   const notes = voicingsForLoop()[bar];
+  const ts = t + swingOffset(s, stepDur);
   for (const [at, len] of SYNTHS[state.synth].rhythm) {
-    if (at === s) take.chord(state.synth, notes, t, len * stepDur);
+    if (at === s) take.chord(state.synth, notes, ts, len * stepDur);
   }
   if (state.bass) {
     for (const [at, len] of BASS.rhythm) {
-      if (at === s) take.bass(bassMidi(chords[degree].rootPc), t, len * stepDur);
+      if (at === s) take.bass(bassMidi(chords[degree].rootPc), ts, len * stepDur);
     }
   }
+  scheduleDrums(drumTake, s, t, stepDur);
 }
 
 function drawPlayhead() {
@@ -400,12 +497,15 @@ function setPlaying(on) {
   stripEl.classList.toggle('playing', on);
   if (on) {
     take = rack.createTake();
+    drumTake = drumRack.createTake();
     scheduler.start(0);
     requestAnimationFrame(drawPlayhead);
   } else {
     scheduler.stop();
     take.stop();
+    drumTake.stop();
     take = null;
+    drumTake = null;
     stripEl.querySelectorAll('.slot').forEach((el) => el.classList.remove('on'));
   }
 }

@@ -16,7 +16,7 @@
 
     <header class="label">
         <h1>One Minute Song</h1>
-        <p>Stage 2 preview: chords, synths and a test loop.</p>
+        <p>Stage 3 preview: chords, synths, drums and a test loop.</p>
     </header>
 
     <section class="panel" aria-labelledby="key-h">
@@ -57,6 +57,18 @@
                 <span>Bass</span>
             </label>
         </div>
+    </section>
+
+    <section class="panel" aria-labelledby="drums-h">
+        <div class="panel-head">
+            <h2 id="drums-h">Drums</h2>
+        </div>
+        <div class="opts" id="kits" role="radiogroup" aria-label="Drum kit"></div>
+        <div class="opts" id="patterns" role="radiogroup" aria-label="Drum pattern"></div>
+        <label class="knob" for="swing">
+            <span>Swing <output id="swing-out" for="swing">15%</output></span>
+            <input type="range" id="swing" min="0" max="100" step="1" value="15">
+        </label>
     </section>
 
     <section class="panel" aria-labelledby="loop-h">
