@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>One Minute Song</title>
+    <meta name="description" content="Spin a prompt, then build a song loop in 60 seconds.">
+    <link rel="icon" type="image/png" href="../imgs/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+
+    <header class="label">
+        <h1>One Minute Song</h1>
+        <p>Stage 1 preview: pick a key and play with the chords.</p>
+    </header>
+
+    <section class="panel" aria-labelledby="key-h">
+        <div class="panel-head">
+            <h2 id="key-h">Key · <span id="key-label">C major</span></h2>
+            <div class="seg" id="mode" role="radiogroup" aria-label="Mode">
+                <button type="button" role="radio" data-mode="major" aria-checked="true">Major</button>
+                <button type="button" role="radio" data-mode="minor" aria-checked="false">Minor</button>
+            </div>
+        </div>
+        <div class="keys" id="keys" role="radiogroup" aria-label="Key"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="palette-h">
+        <div class="panel-head">
+            <h2 id="palette-h">Chords</h2>
+            <p class="hint">Tap to hear · hold or ⋯ for variants</p>
+        </div>
+        <div class="palette" id="palette" role="group" aria-label="Chord palette"></div>
+    </section>
+
+    <footer class="footer">Made by <a href="https://joebieker.com">Joe Bieker</a></footer>
+</div>
+
+<dialog class="sheet" id="variant-sheet" aria-labelledby="sheet-title">
+    <div class="sheet-head">
+        <h3 id="sheet-title">Variants</h3>
+        <button type="button" class="text-btn" id="sheet-done">Done</button>
+    </div>
+    <div class="variants" id="variants" role="radiogroup" aria-labelledby="sheet-title"></div>
+</dialog>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
