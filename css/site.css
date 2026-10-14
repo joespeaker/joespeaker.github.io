@@ -396,3 +396,9 @@ a.tile:hover h3 { color: var(--accent); }
   html { scroll-behavior: auto; }
   * { transition: none !important; }
 }
+
+/* Home hub */
+.home .intro { padding-bottom: 40px; }
+.home .tiles { margin-bottom: 72px; }
+.tile.soon { background: none; border: 1.5px dashed var(--rule); }
+.tile.soon h3 { color: var(--muted); }
