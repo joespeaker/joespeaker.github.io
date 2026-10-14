@@ -1,769 +1,284 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="title" property="og:title" content="Joe Bieker | Systems Analyst & Web Developer">
-    <meta name="description" property="og:description" content="Systems Analyst at DH Pace Company. Building enterprise platforms with Oracle APEX, React, and TypeScript.">
-    <meta name="keywords" content="Joe Bieker, personal website, experience, education, projects, certifications, contact, joebieker, joe bieker, jspeaker">
+    <title>Joe Bieker · Systems Analyst</title>
+    <meta name="description" content="Joe Bieker is a systems analyst at DH Pace in Olathe, Kansas. He builds internal apps, integrations and databases with Oracle APEX, PL/SQL and OIC.">
     <meta name="author" content="Joe Bieker">
-    <link rel="icon" type="image/x-icon" href="imgs/favicon.png">
-    <title>Joe Bieker | Systems Analyst & Web Developer</title>
+    <meta property="og:title" content="Joe Bieker · Systems Analyst">
+    <meta property="og:description" content="Systems analyst in Kansas City. Internal apps, workflow automation and databases.">
+    <meta property="og:url" content="https://joebieker.com/">
+    <meta property="og:type" content="website">
+    <link rel="canonical" href="https://joebieker.com/">
+    <link rel="icon" type="image/png" href="imgs/favicon.png">
+    <script>
+        try {
+            var t = localStorage.getItem('theme');
+            if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "surface": "#0a0e14",
-              "surface-dim": "#0a0e14",
-              "surface-container-lowest": "#000000",
-              "surface-container-low": "#0f141a",
-              "surface-container": "#151a21",
-              "surface-container-high": "#1b2028",
-              "surface-container-highest": "#20262f",
-              "surface-variant": "#20262f",
-              "surface-bright": "#262c36",
-              "primary": "#aaffdc",
-              "primary-dim": "#00edb4",
-              "primary-container": "#00fdc1",
-              "primary-fixed": "#00fdc1",
-              "primary-fixed-dim": "#00edb4",
-              "secondary": "#669dff",
-              "secondary-dim": "#0070ea",
-              "secondary-container": "#005bc0",
-              "tertiary": "#74e0ff",
-              "tertiary-dim": "#00c7ec",
-              "on-surface": "#f1f3fc",
-              "on-surface-variant": "#a8abb3",
-              "on-primary": "#00654b",
-              "on-primary-fixed": "#004734",
-              "on-secondary": "#001f49",
-              "on-tertiary": "#004e5f",
-              "outline": "#72757d",
-              "outline-variant": "#44484f",
-              "error": "#ff716c",
-              "on-background": "#f1f3fc",
-              "background": "#0a0e14",
-            },
-            fontFamily: {
-              "headline": ["DM Sans", "sans-serif"],
-              "body": ["Inter", "sans-serif"],
-              "label": ["Inter", "sans-serif"]
-            },
-            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
-          },
-        },
-      }
-    </script>
-    <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-JDQKB8TRSR"></script>
-    <style>
-        html { scroll-behavior: smooth; }
-        body { overflow-x: hidden; }
-
-        /* Noise grain overlay */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0.02;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            background-repeat: repeat;
-            background-size: 256px 256px;
-        }
-
-        .architect-grid {
-            background-image: radial-gradient(circle at 1.5px 1.5px, rgba(114, 117, 125, 0.07) 1px, transparent 0);
-            background-size: 40px 40px;
-        }
-
-        /* Marquee */
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-            display: flex;
-            width: max-content;
-            animation: marquee 30s linear infinite;
-        }
-
-        /* Hero animations */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes heroFloat {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(15px, -10px); }
-        }
-        @keyframes heroFloat2 {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(-10px, 15px); }
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 200%; }
-        }
-
-        .hero-fade-1 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
-        .hero-fade-2 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both; }
-        .hero-fade-3 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both; }
-
-        #typedText::after {
-            content: '|';
-            font-weight: 300;
-            animation: blink 0.8s step-end infinite;
-            color: #aaffdc;
-            margin-left: 2px;
-        }
-
-        /* Scroll reveal */
-        .reveal {
-            opacity: 0;
-            transform: translateY(24px);
-        }
-        .reveal.visible {
-            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        /* Accent bar glow on hover */
-        .accent-bar {
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .group:hover .accent-bar {
-            width: 6px !important;
-            box-shadow: 4px 0 20px rgba(170, 255, 220, 0.12);
-        }
-
-        /* Shimmer on CTA */
-        .cta-shimmer { position: relative; overflow: hidden; }
-        .cta-shimmer::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 60%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-        }
-        .cta-shimmer:hover::after {
-            animation: shimmer 0.6s ease forwards;
-        }
-
-        /* Nav link dot */
-        .nav-link { position: relative; }
-        .nav-link::before {
-            content: '';
-            position: absolute;
-            left: -14px;
-            top: 50%;
-            transform: translateY(-50%) scale(0);
-            width: 5px; height: 5px;
-            background: #aaffdc;
-            border-radius: 50%;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 0 8px rgba(170, 255, 220, 0.4);
-        }
-        .nav-link:hover::before { transform: translateY(-50%) scale(1); }
-
-        /* Company link underline */
-        .link-underline::after {
-            content: '';
-            position: absolute;
-            bottom: -2px; left: 0;
-            width: 0; height: 1px;
-            background: #aaffdc;
-            transition: width 0.3s ease;
-        }
-        .link-underline:hover::after { width: 100%; }
-    </style>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-JDQKB8TRSR');
+    </script>
 </head>
-<body class="bg-surface text-on-surface font-body selection:bg-primary/30">
+<body>
 
-<!-- Top Nav Bar -->
-<nav class="fixed top-0 w-full z-50 bg-surface-dim/60 backdrop-blur-xl">
-    <div class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
-        <div class="text-xl font-bold tracking-tighter text-on-surface font-headline">
-            JOE BIEKER
-        </div>
-        <div class="hidden md:flex items-center space-x-10">
-            <a class="nav-link text-on-surface/70 hover:text-primary transition-all font-headline font-bold tracking-tight text-sm" href="#experience">Experience</a>
-            <a class="nav-link text-on-surface/70 hover:text-primary transition-all font-headline font-bold tracking-tight text-sm" href="#education">Education</a>
-            <a class="nav-link text-on-surface/70 hover:text-primary transition-all font-headline font-bold tracking-tight text-sm" href="#projects">Projects</a>
-            <a class="nav-link text-on-surface/70 hover:text-primary transition-all font-headline font-bold tracking-tight text-sm" href="#certifications">Certifications</a>
-            <a class="nav-link text-on-surface/70 hover:text-primary transition-all font-headline font-bold tracking-tight text-sm" href="#references">References</a>
-            <a class="nav-link text-on-surface/70 hover:text-primary transition-all font-headline font-bold tracking-tight text-sm" href="#contact">Contact</a>
-        </div>
-        <div class="flex items-center space-x-4">
-            <a href="Joe Bieker - Resume.pdf" class="bg-gradient-to-br from-primary to-primary-dim text-on-primary-fixed px-5 py-2 font-bold font-headline text-sm tracking-tight transition-all duration-300 hover:shadow-[0_0_15px_rgba(170,255,220,0.3)] rounded">
-                Download CV
-            </a>
-        </div>
-        <!-- Mobile menu button -->
-        <button id="menu-button" class="md:hidden text-on-surface text-xl"><i class="fa-solid fa-bars"></i></button>
+<header class="site-header">
+    <div class="wrap">
+        <a class="brand" href="#top">Joe Bieker</a>
+        <nav class="site-nav" aria-label="Main">
+            <a href="#work">Work</a>
+            <a href="#projects" class="hide-sm">Projects</a>
+            <a href="#education" class="hide-sm">Education</a>
+            <a href="#contact">Contact</a>
+            <a href="Joe%20Bieker%20-%20Resume.pdf">Resume</a>
+            <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            </button>
+        </nav>
     </div>
-    <!-- Mobile menu -->
-    <div id="menu-links" class="hidden md:hidden px-8 pb-4 space-y-3">
-        <a class="block text-on-surface/70 hover:text-primary font-headline font-bold text-sm" href="#experience">Experience</a>
-        <a class="block text-on-surface/70 hover:text-primary font-headline font-bold text-sm" href="#education">Education</a>
-        <a class="block text-on-surface/70 hover:text-primary font-headline font-bold text-sm" href="#projects">Projects</a>
-        <a class="block text-on-surface/70 hover:text-primary font-headline font-bold text-sm" href="#certifications">Certifications</a>
-        <a class="block text-on-surface/70 hover:text-primary font-headline font-bold text-sm" href="#references">References</a>
-        <a class="block text-on-surface/70 hover:text-primary font-headline font-bold text-sm" href="#contact">Contact</a>
-    </div>
-</nav>
+</header>
 
-<main class="architect-grid pt-20">
+<main id="top" class="wrap">
 
-<!-- Hero Section -->
-<section class="w-full relative overflow-hidden">
-<div class="absolute inset-0 bg-primary/5 rounded-full blur-3xl w-96 h-96 -top-24 -right-24" style="animation: heroFloat 12s ease-in-out infinite;"></div>
-<div class="absolute top-1/2 -left-48 w-80 h-80 bg-secondary/5 rounded-full blur-3xl" style="animation: heroFloat2 15s ease-in-out infinite;"></div>
-<div class="max-w-7xl mx-auto px-8 py-24 md:py-40 flex flex-col items-start relative">
-    <div class="z-10 w-full">
-        <div class="inline-flex items-center space-x-2 bg-secondary-container/20 px-3 py-1 mb-8 rounded-full border border-secondary/20 hero-fade-1">
-            <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-            <span class="text-primary text-xs font-bold tracking-widest uppercase font-label">Systems Analyst at DH Pace</span>
+    <section class="intro">
+        <h1>Joe Bieker <em>builds the tools people use at work.</em></h1>
+        <p class="lede">
+            I'm a systems analyst at <a href="https://www.dhpace.com/">DH Pace</a> in Olathe, Kansas.
+            Most of my time goes into PaceX, an internal platform I started in 2024 that now runs
+            40+ apps for around 300 employees. I sit down with the people doing the work, figure out
+            what the process really is, then build the database, the logic and the app around it.
+        </p>
+        <p class="lede">
+            Outside of work I write and release music as jspeaker and run a free sand volleyball
+            club in Kansas City.
+        </p>
+        <div class="intro-links">
+            <a href="https://www.linkedin.com/in/joseph-bieker/">LinkedIn</a>
+            <a href="https://github.com/joespeaker">GitHub</a>
+            <a href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX">Spotify</a>
+            <a href="https://www.instagram.com/joe.speaker/">Instagram</a>
         </div>
-        <h1 class="text-6xl md:text-8xl lg:text-9xl font-headline font-extrabold tracking-tighter leading-none mb-8 hero-fade-1">
-            I'm <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-tertiary">Joe Bieker</span>
-        </h1>
-        <div class="max-w-xl mb-12 hero-fade-2">
-            <p class="text-xl md:text-2xl text-on-surface-variant font-light leading-relaxed">
-                I'm a <span id="typedText" class="text-on-surface font-semibold"></span>
-            </p>
-        </div>
-        <div class="flex items-center space-x-5 hero-fade-3">
-            <a href="https://www.linkedin.com/in/joseph-bieker/" target="_blank" class="text-on-surface-variant hover:text-primary transition-all duration-300 text-2xl hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(170,255,220,0.3)]"><i class="fab fa-linkedin-in"></i></a>
-            <a href="https://github.com/joespeaker" target="_blank" class="text-on-surface-variant hover:text-primary transition-all duration-300 text-2xl hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(170,255,220,0.3)]"><i class="fab fa-github"></i></a>
-            <a href="https://www.instagram.com/joe.speaker/" target="_blank" class="text-on-surface-variant hover:text-primary transition-all duration-300 text-2xl hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(170,255,220,0.3)]"><i class="fab fa-instagram"></i></a>
-            <a href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX" target="_blank" class="text-on-surface-variant hover:text-primary transition-all duration-300 text-2xl hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(170,255,220,0.3)]"><i class="fab fa-spotify"></i></a>
-        </div>
-    </div>
-</div>
-</section>
+    </section>
 
-<!-- Marquee Technologies -->
-<section class="w-full bg-surface-container-low py-8 border-y border-outline-variant/10 overflow-hidden">
-    <div class="animate-marquee space-x-10 flex items-center">
-        <div class="flex items-center space-x-3 px-4"><i class="fas fa-database text-primary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight">ORACLE_APEX</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fab fa-react text-secondary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight text-on-surface-variant/40">REACT</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fas fa-code text-tertiary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight">TYPESCRIPT</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fas fa-server text-primary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight text-on-surface-variant/40">PL/SQL</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fas fa-plug text-secondary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight">REST_APIS</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fab fa-js text-tertiary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight text-on-surface-variant/40">JAVASCRIPT</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fab fa-python text-primary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight">PYTHON</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fas fa-chart-bar text-secondary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight text-on-surface-variant/40">TABLEAU</span></div>
-        <!-- Duplicate for seamless loop -->
-        <div class="flex items-center space-x-3 px-4"><i class="fas fa-database text-primary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight">ORACLE_APEX</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fab fa-react text-secondary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight text-on-surface-variant/40">REACT</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fas fa-code text-tertiary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight">TYPESCRIPT</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fas fa-server text-primary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight text-on-surface-variant/40">PL/SQL</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fas fa-plug text-secondary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight">REST_APIS</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fab fa-js text-tertiary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight text-on-surface-variant/40">JAVASCRIPT</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fab fa-python text-primary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight">PYTHON</span></div>
-        <div class="flex items-center space-x-3 px-4"><i class="fas fa-chart-bar text-secondary text-xl"></i><span class="font-headline text-lg font-bold tracking-tight text-on-surface-variant/40">TABLEAU</span></div>
-    </div>
-</section>
+    <section class="section" id="work">
+        <h2>Work</h2>
+        <div>
 
-<!-- Experience Section -->
-<section id="experience" class="max-w-7xl mx-auto px-8 py-24">
-    <div class="mb-12 reveal">
-        <h2 class="text-4xl md:text-5xl font-headline font-extrabold tracking-tighter mb-3">Experience</h2>
-        <div class="w-20 h-[3px] bg-gradient-to-r from-primary to-secondary rounded-full"></div>
-    </div>
-
-    <div class="space-y-5">
-        <!-- DH Pace Company -->
-        <div class="group relative bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg overflow-hidden reveal">
-            <div class="accent-bar absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-secondary"></div>
-            <div class="p-8 pl-10">
-                <div class="flex items-start gap-5 mb-6">
-                    <div class="w-16 h-16 bg-surface-container-highest rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <img src="imgs/dhpace-logo.jpg" alt="DH Pace" class="max-w-full max-h-full object-contain">
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-headline font-bold tracking-tight">DH Pace Company, Inc.</h3>
-                        <p class="text-on-surface-variant text-sm mt-1">Full-time · 2 yrs 3 mos · Olathe, Kansas · Hybrid</p>
-                    </div>
+            <article class="job">
+                <div class="job-head">
+                    <h3>DH Pace Company</h3>
+                    <span class="meta">2024 – now</span>
                 </div>
-                <!-- Systems Analyst -->
-                <h4 class="text-lg font-headline font-bold tracking-tight mb-1">Systems Analyst</h4>
-                <p class="text-on-surface-variant text-sm mb-4">Nov 2024 - Present · 1 yr 8 mos</p>
-                <ul class="space-y-2 mb-5 text-on-surface-variant text-sm leading-relaxed">
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Built and own PaceX, DH Pace's internal enterprise application platform on Oracle APEX, serving 40+ apps used by 300+ employees</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Translated messy, manual business processes into scalable internal tools by working directly with stakeholders to scope requirements and design the solution</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Drove PaceX's evolution from disconnected standalone apps into a unified platform, introducing a centralized hub and reusable development patterns that cut new-app build time</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Architected and shipped internal applications with React + TypeScript (MUI) on an ORDS REST API backend, owning the full stack from database to UI</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Built a reusable frontend template framework that accelerated new-app delivery and enforced consistent UI/UX across the platform</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Engineered workflow-driven features — approvals, notifications, file uploads, and role-based access control — powering the platform's core business logic</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Wrote the backend services and business logic in PL/SQL, handling secure, efficient data processing across applications</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Designed normalized database schemas and data workflows built for scale and long-term maintainability</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Established testing protocols and release processes with QA to ship stable production deployments</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Designed and maintained data integration workflows connecting enterprise systems through Oracle Integration Cloud (OIC), automating data movement and reducing manual processing steps</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Established CI/CD pipelines using GitHub Actions to manage build, test, and deployment across environments, following SDLC and DevOps practices with version control in Git</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Developed PL/SQL routines to ingest, validate, and transform data across sources, ensuring accuracy and reliability for downstream applications and reporting</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Monitored system health and troubleshot production data and workflow failures, diagnosing root causes and tuning processes to proactively prevent recurring issues</li>
-                </ul>
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">PL/SQL</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">REST APIs</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">React</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">TypeScript</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Oracle APEX</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Oracle Integration Cloud</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">GitHub Actions</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">CI/CD</span>
-                </div>
-                <!-- Business Analyst -->
-                <div class="border-t border-outline-variant/10 pt-6">
-                    <h4 class="text-lg font-headline font-bold tracking-tight mb-1">Business Analyst - Support</h4>
-                    <p class="text-on-surface-variant text-sm mb-4">Apr 2024 - Nov 2024 · 8 mos</p>
-                    <ul class="space-y-2 mb-5 text-on-surface-variant text-sm leading-relaxed">
-                        <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Developed a new internal platform called PaceX for applications and forms in Oracle APEX</li>
-                        <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Collaborated with users and stakeholders to gather requirements for each application</li>
-                        <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Led frontend development with HTML/CSS/JavaScript, optimizing user interface and experience</li>
-                        <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Implemented robust backend with PL/SQL, ensuring efficient data management and processing</li>
+                <p class="job-where">Olathe, KS · Hybrid</p>
+
+                <div class="role">
+                    <div class="role-head">
+                        <h4>Systems Analyst</h4>
+                        <span class="meta">Nov 2024 – Present</span>
+                    </div>
+                    <ul>
+                        <li>Own PaceX, the Oracle APEX platform behind our internal apps. It started as a handful of separate tools; I pulled them into one hub with shared templates so a new app starts from a working base instead of a blank page.</li>
+                        <li>Build workflow apps end to end: approvals, notifications, file uploads and role-based access, with the business logic in PL/SQL and ORDS REST APIs. Newer front ends are React and TypeScript.</li>
+                        <li>Build and maintain integrations between our enterprise systems in Oracle Integration Cloud, which replaced a lot of manual data entry.</li>
+                        <li>Set up GitHub Actions pipelines for builds and deploys, and worked with QA on a release process so changes ship without surprises.</li>
+                        <li>Handle production issues when a job or workflow fails, and fix the cause so it doesn't come back.</li>
                     </ul>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Oracle APEX</span>
-                        <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">HTML/CSS</span>
-                        <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">JavaScript</span>
-                        <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">PL/SQL</span>
-                    </div>
+                    <p class="stack">PL/SQL · Oracle APEX · ORDS · OIC · React · TypeScript · GitHub Actions</p>
                 </div>
-            </div>
-        </div>
 
-        <!-- Playfair Data -->
-        <div class="group relative bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg overflow-hidden reveal">
-            <div class="accent-bar absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-secondary to-tertiary"></div>
-            <div class="p-8 pl-10">
-                <div class="flex items-start gap-5 mb-5">
-                    <div class="w-16 h-16 bg-surface-container-highest rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <img src="imgs/pd-logo.png" alt="Playfair Data" class="max-w-full max-h-full object-contain">
+                <div class="role">
+                    <div class="role-head">
+                        <h4>Business Analyst, Support</h4>
+                        <span class="meta">Apr 2024 – Nov 2024</span>
                     </div>
-                    <div>
-                        <h3 class="text-xl font-headline font-bold tracking-tight">Data Engineering Intern</h3>
-                        <p class="text-sm mt-1"><a href="https://playfairdata.com/" class="text-secondary hover:text-primary transition-colors relative link-underline">Playfair Data</a> <span class="text-on-surface-variant">· Jun 2023 - Aug 2023 · 3 mos</span></p>
-                        <p class="text-on-surface-variant text-sm opacity-60">Overland Park, Kansas</p>
-                    </div>
+                    <p>Joined on the support side and built the first version of PaceX: forms and small apps in APEX, gathered requirements straight from the people who'd use them, with HTML, CSS and JavaScript on the front and PL/SQL behind it.</p>
                 </div>
-                <ul class="space-y-2 mb-5 text-on-surface-variant text-sm leading-relaxed">
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Worked with teammates to develop solutions to data pipeline problems</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Built a Tableau Prep Flow to engineer the datasets</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Used Alteryx to create a white label dataset</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Developed a MVP web portal using the Python Flask package and Tableau's REST API</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Learned softwares such as Tableau Prep, Alteryx, Google BigQuery and Google Analytics 4</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>QA'd the data and wrote documentation on the connection process for the data</li>
-                </ul>
-                <div class="flex flex-wrap gap-2">
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Data Engineering</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Tableau</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Alteryx</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Python</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">BigQuery</span>
-                </div>
-            </div>
-        </div>
+            </article>
 
-        <!-- Benedictine College -->
-        <div class="group relative bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg overflow-hidden reveal">
-            <div class="accent-bar absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-tertiary to-primary"></div>
-            <div class="p-8 pl-10">
-                <div class="flex items-start gap-5 mb-6">
-                    <div class="w-16 h-16 bg-surface-container-highest rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <img src="imgs/bc_logo.png" alt="Benedictine College" class="max-w-full max-h-full object-contain">
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-headline font-bold tracking-tight">Benedictine College</h3>
-                        <p class="text-on-surface-variant text-sm mt-1">10 mos · Atchison, Kansas</p>
-                    </div>
+            <article class="job">
+                <div class="job-head">
+                    <h3>Playfair Data</h3>
+                    <span class="meta">Jun – Aug 2023</span>
                 </div>
-                <h4 class="text-lg font-headline font-bold tracking-tight mb-1">Campus Activities Board Member</h4>
-                <p class="text-on-surface-variant text-sm mb-4">Aug 2022 - May 2023 · Seasonal</p>
-                <ul class="space-y-2 mb-5 text-on-surface-variant text-sm leading-relaxed">
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-tertiary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Collaboratively upheld and revitalized the traditions of Benedictine College throughout the 2022-2023 academic term</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-tertiary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Assumed a leadership role in a compact team to strategize and execute the SpringFest tradition</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-tertiary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Communicated with artists and management entities for a performance in Atchison</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-tertiary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Demonstrated collaboration by offering assistance during co-team events</li>
-                </ul>
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Teamwork</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Leadership</span>
-                </div>
-                <div class="border-t border-outline-variant/10 pt-6">
-                    <h4 class="text-lg font-headline font-bold tracking-tight mb-1">Website Editor</h4>
-                    <p class="text-on-surface-variant text-sm mb-4">Aug 2022 - Dec 2022 · 5 mos · Part-time</p>
-                    <ul class="space-y-2 mb-5 text-on-surface-variant text-sm leading-relaxed">
-                        <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-tertiary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Helped update, manage, and maintain Benedictine College's website</li>
-                    </ul>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Adobe Photoshop</span>
-                        <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">HTML</span>
-                        <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">CMS</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+                <p class="job-where">Data Engineering Intern · Overland Park, KS</p>
+                <p>Summer on the data engineering team, mostly on the backend of a Google Analytics 4 dashboard. I wrote SQL to turn raw GA4 events into tables Tableau could use, built Tableau Prep and Alteryx flows for a white-label dataset, and put together a small Flask portal on top of Tableau's REST API. Also QA'd the data and wrote up the connection docs.</p>
+                <p class="stack">SQL · Tableau Prep · Alteryx · BigQuery · Python · Flask</p>
+            </article>
 
-        <!-- Podium Education -->
-        <div class="group relative bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg overflow-hidden reveal">
-            <div class="accent-bar absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-secondary"></div>
-            <div class="p-8 pl-10">
-                <div class="flex items-start gap-5 mb-5">
-                    <div class="w-16 h-16 bg-surface-container-highest rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <img src="imgs/pe-logo.png" alt="Podium Education" class="max-w-full max-h-full object-contain">
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-headline font-bold tracking-tight">HelpHub Specialist</h3>
-                        <p class="text-sm mt-1"><a href="https://podiumeducation.com/" class="text-secondary hover:text-primary transition-colors relative link-underline">Podium Education</a> <span class="text-on-surface-variant">· Oct 2021 - May 2023 · 1 yr 8 mos · Part-time</span></p>
-                        <p class="text-on-surface-variant text-sm opacity-60">Remote</p>
-                    </div>
+            <article class="job">
+                <div class="job-head">
+                    <h3>Podium Education</h3>
+                    <span class="meta">2021 – 2023</span>
                 </div>
-                <ul class="space-y-2 mb-5 text-on-surface-variant text-sm leading-relaxed">
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Provided tutoring in data analytics, web development, and digital marketing, maintaining a support rating of <strong class="text-on-surface">96%</strong> across 900+ interactions</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Collaborated with the video production team, contributing to the organization and management of their extensive video database</li>
-                </ul>
-                <div class="flex flex-wrap gap-2">
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">SQL</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Python</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">JavaScript</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Tableau</span>
-                </div>
-            </div>
-        </div>
+                <p class="job-where">Remote · Part-time</p>
 
-        <!-- Greenfield Growth Partners -->
-        <div class="group relative bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg overflow-hidden reveal">
-            <div class="accent-bar absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-secondary to-tertiary"></div>
-            <div class="p-8 pl-10">
-                <div class="flex items-start gap-5 mb-5">
-                    <div class="w-16 h-16 bg-surface-container-highest rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <img src="imgs/gfgp_logo.jpeg" alt="Greenfield Growth Partners" class="max-w-full max-h-full object-contain">
+                <div class="role">
+                    <div class="role-head">
+                        <h4>HelpHub Specialist</h4>
+                        <span class="meta">Oct 2021 – May 2023</span>
                     </div>
-                    <div>
-                        <h3 class="text-xl font-headline font-bold tracking-tight">Data Analyst Intern</h3>
-                        <p class="text-sm mt-1"><a href="https://www.greenfieldgrowthpartners.com/" class="text-secondary hover:text-primary transition-colors relative link-underline">Greenfield Growth Partners, LLC</a> <span class="text-on-surface-variant">· Nov 2022 - Feb 2023 · 4 mos</span></p>
-                        <p class="text-on-surface-variant text-sm opacity-60">Olathe, Kansas · Hybrid</p>
+                    <p>Tutored students through Podium's support chat in Tableau, SQL, Python, HTML/CSS, JavaScript and Excel. 900+ conversations with a 96% rating. Also helped the video team keep a library of 500+ lessons organized.</p>
+                </div>
+
+                <div class="role">
+                    <div class="role-head">
+                        <h4>Academic Support Specialist</h4>
+                        <span class="meta">May – Aug 2021</span>
                     </div>
+                    <p>Graded data analysis projects and beta tested new courses before they went out to students.</p>
                 </div>
-                <ul class="space-y-2 mb-5 text-on-surface-variant text-sm leading-relaxed">
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Spearheaded a project utilizing Microsoft Power Apps</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Developed a sophisticated Minimum Viable Product (MVP)</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Implemented a streamlined process for property information submission</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Established a data repository within a SharePoint List</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Used Power Automate to send emails upon submission</li>
-                </ul>
-                <div class="flex flex-wrap gap-2">
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Power Apps</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Power Automate</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">SharePoint</span>
-                </div>
-            </div>
-        </div>
+            </article>
 
-        <!-- QED Wealth Solutions -->
-        <div class="group relative bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg overflow-hidden reveal">
-            <div class="accent-bar absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-tertiary to-primary"></div>
-            <div class="p-8 pl-10">
-                <div class="flex items-start gap-5 mb-5">
-                    <div class="w-16 h-16 bg-surface-container-highest rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <img src="imgs/qed-logo.png" alt="QED Wealth Solutions" class="max-w-full max-h-full object-contain">
+            <article class="job">
+                <div class="job-head">
+                    <h3>Greenfield Growth Partners</h3>
+                    <span class="meta">Nov 2022 – Feb 2023</span>
+                </div>
+                <p class="job-where">Data Analyst Intern · Olathe, KS</p>
+                <p>Built a Power Apps prototype for submitting property information. Submissions landed in a SharePoint list and Power Automate sent the notification emails.</p>
+                <p class="stack">Power Apps · Power Automate · SharePoint</p>
+            </article>
+
+            <article class="job">
+                <div class="job-head">
+                    <h3>QED Wealth Solutions</h3>
+                    <span class="meta">Nov 2022 – Jan 2023</span>
+                </div>
+                <p class="job-where">Web Developer · Freelance</p>
+                <p>Designed and built <a href="https://www.qedwealthsolutions.com">qedwealthsolutions.com</a> from scratch and worked with the client on revisions until launch.</p>
+                <p class="stack">HTML · CSS · Bootstrap · JavaScript · AWS</p>
+            </article>
+
+            <article class="job">
+                <div class="job-head">
+                    <h3>Benedictine College</h3>
+                    <span class="meta">2022 – 2023</span>
+                </div>
+                <p class="job-where">Atchison, KS</p>
+
+                <div class="role">
+                    <div class="role-head">
+                        <h4>Campus Activities Board</h4>
+                        <span class="meta">Aug 2022 – May 2023</span>
                     </div>
-                    <div>
-                        <h3 class="text-xl font-headline font-bold tracking-tight">Web Developer</h3>
-                        <p class="text-sm mt-1"><a href="https://www.qedwealthsolutions.com" class="text-secondary hover:text-primary transition-colors relative link-underline">QED Wealth Solutions</a> <span class="text-on-surface-variant">· Nov 2022 - Jan 2023 · 3 mos</span></p>
+                    <p>Helped run the school's yearly traditions. Was on the small team that planned SpringFest, including booking and coordinating with the performing artist.</p>
+                </div>
+
+                <div class="role">
+                    <div class="role-head">
+                        <h4>Website Editor</h4>
+                        <span class="meta">Aug – Dec 2022</span>
                     </div>
+                    <p>Kept pages on the college website up to date in the CMS.</p>
                 </div>
-                <ul class="space-y-2 mb-5 text-on-surface-variant text-sm leading-relaxed">
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-tertiary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Created www.qedwealthsolutions.com from scratch using the Bootstrap framework</li>
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-tertiary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Engaged with the client regularly to address issues and concerns</li>
-                </ul>
-                <div class="flex flex-wrap gap-2">
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Bootstrap</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">HTML5</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">CSS</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">JavaScript</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">AWS</span>
-                </div>
-            </div>
-        </div>
+            </article>
 
-        <!-- Podium Education - Academic Support Specialist -->
-        <div class="group relative bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg overflow-hidden reveal">
-            <div class="accent-bar absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-secondary"></div>
-            <div class="p-8 pl-10">
-                <div class="flex items-start gap-5 mb-5">
-                    <div class="w-16 h-16 bg-surface-container-highest rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <img src="imgs/pe-logo.png" alt="Podium Education" class="max-w-full max-h-full object-contain">
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-headline font-bold tracking-tight">Academic Support Specialist</h3>
-                        <p class="text-sm mt-1"><a href="https://podiumeducation.com/" class="text-secondary hover:text-primary transition-colors relative link-underline">Podium Education</a> <span class="text-on-surface-variant">· May 2021 - Aug 2021 · 4 mos · Part-time</span></p>
-                        <p class="text-on-surface-variant text-sm opacity-60">Austin, Texas · Remote</p>
-                    </div>
-                </div>
-                <ul class="space-y-2 mb-5 text-on-surface-variant text-sm leading-relaxed">
-                    <li class="flex items-start gap-3"><span class="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0 opacity-60"></span>Tutored and graded data analysis projects while helping the company beta test new courses and improve overall functionality</li>
-                </ul>
-                <div class="flex flex-wrap gap-2">
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Data Analytics</span>
-                    <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">QA</span>
-                </div>
-            </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Education Section -->
-<section id="education" class="max-w-7xl mx-auto px-8 py-24">
-    <div class="mb-12 reveal">
-        <h2 class="text-4xl md:text-5xl font-headline font-extrabold tracking-tighter mb-3">Education</h2>
-        <div class="w-20 h-[3px] bg-gradient-to-r from-primary to-secondary rounded-full"></div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg p-8 text-center reveal">
-            <div class="w-16 h-16 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center mx-auto mb-5 text-primary text-2xl"><i class="fas fa-graduation-cap"></i></div>
-            <h3 class="text-xl font-headline font-bold tracking-tight mb-1"><a href="https://benedictine.edu/" class="text-secondary hover:text-primary transition-colors">Benedictine College</a></h3>
-            <p class="text-on-surface-variant text-sm mb-4">Aug 2018 - May 2023</p>
-            <div class="flex justify-center items-center gap-3 mb-5">
-                <span class="text-on-surface-variant text-xs uppercase tracking-widest font-bold">Major</span>
-                <span class="text-on-surface font-headline font-bold">Computer Science</span>
-            </div>
-            <p class="text-on-surface-variant text-xs uppercase tracking-widest font-bold mb-3 text-left">Activities & Leadership</p>
-            <div class="flex flex-wrap gap-2">
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Track</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Student Government</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Campus Activities Board</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Disc Golf Club President</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Bible Study</span>
-            </div>
-        </div>
-        <div class="bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg p-8 text-center reveal">
-            <div class="w-16 h-16 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center mx-auto mb-5 text-primary text-2xl"><i class="fas fa-school"></i></div>
-            <h3 class="text-xl font-headline font-bold tracking-tight mb-1"><a href="https://fcsacredheart.org/" class="text-secondary hover:text-primary transition-colors">Falls City Sacred Heart</a></h3>
-            <p class="text-on-surface-variant text-sm mb-4">Aug 2014 - May 2018</p>
-            <div class="flex justify-center items-center gap-3 mb-5">
-                <span class="text-on-surface-variant text-xs uppercase tracking-widest font-bold">GPA</span>
-                <span class="text-primary font-headline font-bold text-xl">3.99</span>
-            </div>
-            <p class="text-on-surface-variant text-xs uppercase tracking-widest font-bold mb-3 text-left">Activities</p>
-            <div class="flex flex-wrap gap-2">
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">National Honor Society</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Student Council</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Football</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Basketball</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Track</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Band</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs text-on-surface-variant">Choir</span>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Projects Section -->
-<section id="projects" class="max-w-7xl mx-auto px-8 py-24">
-    <div class="mb-12 reveal">
-        <h2 class="text-4xl md:text-5xl font-headline font-extrabold tracking-tighter mb-3">Projects</h2>
-        <div class="w-20 h-[3px] bg-gradient-to-r from-primary to-secondary rounded-full"></div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg p-8 flex flex-col relative overflow-hidden group reveal">
-            <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-secondary to-tertiary opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div class="flex items-center gap-4 mb-5">
-                <div class="w-12 h-12 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl flex items-center justify-center text-primary text-lg group-hover:scale-110 transition-transform"><i class="fas fa-music"></i></div>
-                <h3 class="text-lg font-headline font-bold tracking-tight"><a href="https://github.com/joespeaker/flask-app" class="text-secondary hover:text-primary transition-colors">SloVerb</a></h3>
-            </div>
-            <p class="text-on-surface-variant text-sm leading-relaxed mb-5">A web app that allows users to paste a YouTube link and adjust audio parameters with sliders to create custom slowed + reverb versions of songs.</p>
-            <div class="flex flex-wrap gap-2 mb-6">
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Python</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Flask</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">JavaScript</span>
-            </div>
-            <a href="https://github.com/joespeaker/flask-app" class="mt-auto cta-shimmer inline-flex items-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary-fixed px-5 py-2.5 font-bold font-headline text-sm tracking-tight rounded hover:shadow-[0_0_20px_rgba(170,255,220,0.4)] transition-all"><i class="fab fa-github"></i> View on GitHub</a>
-        </div>
-        <div class="bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg p-8 flex flex-col relative overflow-hidden group reveal">
-            <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-secondary to-tertiary opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div class="flex items-center gap-4 mb-5">
-                <div class="w-12 h-12 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl flex items-center justify-center text-primary text-lg group-hover:scale-110 transition-transform"><i class="fab fa-youtube"></i></div>
-                <h3 class="text-lg font-headline font-bold tracking-tight"><a href="https://github.com/joespeaker/shorts-automation/tree/main" class="text-secondary hover:text-primary transition-colors">Shorts Automation</a></h3>
-            </div>
-            <p class="text-on-surface-variant text-sm leading-relaxed mb-5">A Python script that automatically generates YouTube Shorts with parkour footage, adds branding elements, and creates compilation videos.</p>
-            <div class="flex flex-wrap gap-2 mb-6">
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Python</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">MoviePy</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">PIL</span>
-            </div>
-            <a href="https://github.com/joespeaker/shorts-automation/tree/main" class="mt-auto cta-shimmer inline-flex items-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary-fixed px-5 py-2.5 font-bold font-headline text-sm tracking-tight rounded hover:shadow-[0_0_20px_rgba(170,255,220,0.4)] transition-all"><i class="fab fa-github"></i> View on GitHub</a>
-        </div>
-        <div class="bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg p-8 flex flex-col relative overflow-hidden group reveal">
-            <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-secondary to-tertiary opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div class="flex items-center gap-4 mb-5">
-                <div class="w-12 h-12 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl flex items-center justify-center text-primary text-lg group-hover:scale-110 transition-transform"><i class="fas fa-leaf"></i></div>
-                <h3 class="text-lg font-headline font-bold tracking-tight"><a href="https://joebieker.com/cropcircle.us" class="text-secondary hover:text-primary transition-colors">CropCircle.us</a></h3>
-            </div>
-            <p class="text-on-surface-variant text-sm leading-relaxed mb-5">An e-commerce website offering affordable, American-made plant protectors with an intuitive shopping experience.</p>
-            <div class="flex flex-wrap gap-2 mb-6">
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">HTML5</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">CSS</span>
-                <span class="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-bold font-label uppercase text-on-surface-variant tracking-wide">Bootstrap</span>
-            </div>
-            <a href="https://joebieker.com/cropcircle.us" class="mt-auto cta-shimmer inline-flex items-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary-fixed px-5 py-2.5 font-bold font-headline text-sm tracking-tight rounded hover:shadow-[0_0_20px_rgba(170,255,220,0.4)] transition-all"><i class="fas fa-external-link-alt"></i> Visit Site</a>
-        </div>
-    </div>
-</section>
-
-<!-- Certifications Section -->
-<section id="certifications" class="max-w-7xl mx-auto px-8 py-24">
-    <div class="mb-12 reveal">
-        <h2 class="text-4xl md:text-5xl font-headline font-extrabold tracking-tighter mb-3">Certifications</h2>
-        <div class="w-20 h-[3px] bg-gradient-to-r from-primary to-secondary rounded-full"></div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <a href="https://skillshop.exceedlms.com/profiles/ed8d750ed5af4b2b9900696eb126e7c8" class="flex items-center gap-4 bg-surface-container-low hover:bg-surface-container transition-all duration-300 rounded-lg p-4 group reveal">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-secondary"><i class="fab fa-google"></i></div>
-            <div class="flex-1 min-w-0"><h4 class="text-sm font-headline font-bold text-on-surface truncate">Google Analytics IQ</h4><p class="text-xs text-on-surface-variant/60">Google · Nov 2023</p></div>
-            <i class="fas fa-external-link-alt text-outline text-xs group-hover:text-primary group-hover:translate-x-1 transition-all"></i>
-        </a>
-        <a href="https://www.credly.com/badges/90bed88f-7323-4a40-9b54-555bfa10798c/linked_in_profile" class="flex items-center gap-4 bg-surface-container-low hover:bg-surface-container transition-all duration-300 rounded-lg p-4 group reveal">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-secondary"><i class="fas fa-cogs"></i></div>
-            <div class="flex-1 min-w-0"><h4 class="text-sm font-headline font-bold text-on-surface truncate">Alteryx Foundational</h4><p class="text-xs text-on-surface-variant/60">Alteryx · July 2023</p></div>
-            <i class="fas fa-external-link-alt text-outline text-xs group-hover:text-primary group-hover:translate-x-1 transition-all"></i>
-        </a>
-        <a href="https://www.credly.com/badges/8d451fb7-304d-498c-90b2-8fd20c250742/linked_in_profile" class="flex items-center gap-4 bg-surface-container-low hover:bg-surface-container transition-all duration-300 rounded-lg p-4 group reveal">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-secondary"><i class="fas fa-database"></i></div>
-            <div class="flex-1 min-w-0"><h4 class="text-sm font-headline font-bold text-on-surface truncate">Data Engineering Practitioner</h4><p class="text-xs text-on-surface-variant/60">Playfair Data · July 2023</p></div>
-            <i class="fas fa-external-link-alt text-outline text-xs group-hover:text-primary group-hover:translate-x-1 transition-all"></i>
-        </a>
-        <a href="https://www.linkedin.com/learning/certificates/0f4b048a1899f82dd452dcbb6ff7c3b181a8cbaecab293b6f49149d9804d7f84" class="flex items-center gap-4 bg-surface-container-low hover:bg-surface-container transition-all duration-300 rounded-lg p-4 group reveal">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-secondary"><i class="fas fa-brain"></i></div>
-            <div class="flex-1 min-w-0"><h4 class="text-sm font-headline font-bold text-on-surface truncate">Machine Learning with Python</h4><p class="text-xs text-on-surface-variant/60">LinkedIn · Apr 2023</p></div>
-            <i class="fas fa-external-link-alt text-outline text-xs group-hover:text-primary group-hover:translate-x-1 transition-all"></i>
-        </a>
-        <a href="https://www.hackerrank.com/certificates/b114fb6b72ee" class="flex items-center gap-4 bg-surface-container-low hover:bg-surface-container transition-all duration-300 rounded-lg p-4 group reveal">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-secondary"><i class="fas fa-database"></i></div>
-            <div class="flex-1 min-w-0"><h4 class="text-sm font-headline font-bold text-on-surface truncate">SQL (Intermediate)</h4><p class="text-xs text-on-surface-variant/60">HackerRank · Apr 2022</p></div>
-            <i class="fas fa-external-link-alt text-outline text-xs group-hover:text-primary group-hover:translate-x-1 transition-all"></i>
-        </a>
-        <a href="https://www.hackerrank.com/certificates/7a82bd7327cf" class="flex items-center gap-4 bg-surface-container-low hover:bg-surface-container transition-all duration-300 rounded-lg p-4 group reveal">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-secondary"><i class="fab fa-js-square"></i></div>
-            <div class="flex-1 min-w-0"><h4 class="text-sm font-headline font-bold text-on-surface truncate">JavaScript (Basic)</h4><p class="text-xs text-on-surface-variant/60">HackerRank · Feb 2022</p></div>
-            <i class="fas fa-external-link-alt text-outline text-xs group-hover:text-primary group-hover:translate-x-1 transition-all"></i>
-        </a>
-        <a href="https://www.hackerrank.com/certificates/e5d365873066" class="flex items-center gap-4 bg-surface-container-low hover:bg-surface-container transition-all duration-300 rounded-lg p-4 group reveal">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-secondary"><i class="fab fa-python"></i></div>
-            <div class="flex-1 min-w-0"><h4 class="text-sm font-headline font-bold text-on-surface truncate">Python (Basic)</h4><p class="text-xs text-on-surface-variant/60">HackerRank · Nov 2021</p></div>
-            <i class="fas fa-external-link-alt text-outline text-xs group-hover:text-primary group-hover:translate-x-1 transition-all"></i>
-        </a>
-        <a href="https://www.hackerrank.com/certificates/a7022653b485" class="flex items-center gap-4 bg-surface-container-low hover:bg-surface-container transition-all duration-300 rounded-lg p-4 group reveal">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-secondary"><i class="fab fa-java"></i></div>
-            <div class="flex-1 min-w-0"><h4 class="text-sm font-headline font-bold text-on-surface truncate">Java (Basic)</h4><p class="text-xs text-on-surface-variant/60">HackerRank · Apr 2021</p></div>
-            <i class="fas fa-external-link-alt text-outline text-xs group-hover:text-primary group-hover:translate-x-1 transition-all"></i>
-        </a>
-        <a href="https://www.credential.net/9be89fd5-e51f-40a6-828e-98fb8ec5e30e" class="flex items-center gap-4 bg-surface-container-low hover:bg-surface-container transition-all duration-300 rounded-lg p-4 group reveal">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-secondary"><i class="fas fa-file-excel"></i></div>
-            <div class="flex-1 min-w-0"><h4 class="text-sm font-headline font-bold text-on-surface truncate">Excel Specialist</h4><p class="text-xs text-on-surface-variant/60">Benedictine College · May 2020</p></div>
-            <i class="fas fa-external-link-alt text-outline text-xs group-hover:text-primary group-hover:translate-x-1 transition-all"></i>
-        </a>
-    </div>
-</section>
-
-<!-- References Section -->
-<section id="references" class="max-w-7xl mx-auto px-8 py-24">
-    <div class="mb-12 reveal">
-        <h2 class="text-4xl md:text-5xl font-headline font-extrabold tracking-tighter mb-3">References</h2>
-        <div class="w-20 h-[3px] bg-gradient-to-r from-primary to-secondary rounded-full"></div>
-    </div>
-    <div class="space-y-6 max-w-4xl">
-        <div class="bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg p-8 relative reveal">
-            <div class="absolute top-6 left-8 text-3xl text-primary/10"><i class="fas fa-quote-left"></i></div>
-            <blockquote class="text-on-surface-variant text-sm leading-[1.85] italic pl-5 border-l-2 border-primary/15 mb-6">
-                Joe was an intern on my Data Engineering team at Playfair Data - he tackled the backend data of our Google Analytics 4 dashboard. Though the GA4 API threw many limitations our way, Joe was very flexible and dove right into the GA4 data and documentation to understand the API. His strength in technical aptitude can really be seen in his work and his ability to grasp new tools and projects very quickly. During his time with us, he learned Tableau Prep and even spent some time in Google Big Query. Overall, it was a pleasure to have Joe on our team!
-            </blockquote>
-            <div class="flex items-center justify-between">
-                <div>
-                    <a href="https://www.linkedin.com/in/arianacukier" class="text-secondary hover:text-primary transition-colors font-headline font-bold text-sm">Ariana Cukier, MSHI</a>
-                    <p class="text-on-surface text-xs mt-0.5">Associate Director, Data Engineering</p>
-                    <p class="text-on-surface-variant text-xs opacity-60">Playfair Data</p>
-                </div>
-                <a href="https://www.linkedin.com/in/arianacukier" class="w-10 h-10 bg-secondary/10 hover:bg-secondary/20 rounded-lg flex items-center justify-center text-secondary transition-all hover:scale-105"><i class="fab fa-linkedin"></i></a>
-            </div>
-        </div>
-        <div class="bg-surface-container-low hover:bg-surface-container transition-all duration-500 rounded-lg p-8 relative reveal">
-            <div class="absolute top-6 left-8 text-3xl text-primary/10"><i class="fas fa-quote-left"></i></div>
-            <blockquote class="text-on-surface-variant text-sm leading-[1.85] italic pl-5 border-l-2 border-primary/15 mb-6">
-                Joe is super adaptable and dedicated to furthering his knowledge and growth. I enjoyed working with Joe in Podium Education's support and tutoring chatbot for roughly two years. He helped thousands of students, mainly in Excel, Tableau, HTML, CSS, and JavaScript. He was knowledgeable in every instance and made a huge impact.
-                <br><br>
-                I genuinely admire Joe's adaptability. During his time at Podium Education, the curriculum and protocols underwent many phases, and he quickly adjusted to those changing circumstances. He often wanted to go the extra mile and learn new material. Joe is a solid asset to any team.
-            </blockquote>
-            <div class="flex items-center justify-between">
-                <div>
-                    <a href="https://www.linkedin.com/in/amy-sparent/" class="text-secondary hover:text-primary transition-colors font-headline font-bold text-sm">Amy Sparent</a>
-                    <p class="text-on-surface text-xs mt-0.5">Academic Operations Manager</p>
-                    <p class="text-on-surface-variant text-xs opacity-60">Podium Education</p>
-                </div>
-                <a href="https://www.linkedin.com/in/amy-sparent/" class="w-10 h-10 bg-secondary/10 hover:bg-secondary/20 rounded-lg flex items-center justify-center text-secondary transition-all hover:scale-105"><i class="fab fa-linkedin"></i></a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Contact Section -->
-<section id="contact" class="max-w-7xl mx-auto px-8 py-24">
-    <div class="mb-12 reveal">
-        <h2 class="text-4xl md:text-5xl font-headline font-extrabold tracking-tighter mb-3">Contact</h2>
-        <div class="w-20 h-[3px] bg-gradient-to-r from-primary to-secondary rounded-full"></div>
-    </div>
-    <div class="bg-surface-container-low rounded-lg p-10 max-w-3xl relative overflow-hidden reveal">
-        <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-secondary to-tertiary"></div>
-        <h3 class="text-3xl font-headline font-extrabold tracking-tighter mb-2">Joe Bieker</h3>
-        <p class="text-on-surface-variant mb-8">Let's build something great together</p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <a href="mailto:joebieker2486@outlook.com" class="flex items-center gap-4 bg-surface-container hover:bg-surface-container-high transition-all duration-300 rounded-lg p-4">
-                <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-primary"><i class="fas fa-envelope"></i></div>
-                <div><span class="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold block">Email</span><span class="text-on-surface text-sm font-semibold">joebieker2486</span></div>
+    <section class="section" id="projects">
+        <h2>Projects</h2>
+        <div class="projects">
+            <a class="project" href="https://github.com/joespeaker/flask-app">
+                <h3>SloVerb</h3>
+                <span class="arrow" aria-hidden="true">↗</span>
+                <p>Paste a YouTube link, drag a few sliders, get a slowed + reverb version of the song.</p>
+                <span class="stack">Python · Flask · JavaScript</span>
             </a>
-            <a href="tel:402-245-7857" class="flex items-center gap-4 bg-surface-container hover:bg-surface-container-high transition-all duration-300 rounded-lg p-4">
-                <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-primary"><i class="fas fa-phone"></i></div>
-                <div><span class="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold block">Phone</span><span class="text-on-surface text-sm font-semibold">402-245-7857</span></div>
+            <a class="project" href="https://github.com/joespeaker/shorts-automation/tree/main">
+                <h3>Shorts Automation</h3>
+                <span class="arrow" aria-hidden="true">↗</span>
+                <p>Script that cuts parkour footage into YouTube Shorts, adds branding, and builds compilation videos.</p>
+                <span class="stack">Python · MoviePy · Pillow</span>
             </a>
-            <a href="Joe Bieker - Resume.pdf" class="flex items-center gap-4 bg-surface-container hover:bg-surface-container-high transition-all duration-300 rounded-lg p-4">
-                <div class="w-10 h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center text-primary"><i class="fas fa-file-pdf"></i></div>
-                <div><span class="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold block">Resume</span><span class="text-on-surface text-sm font-semibold">Download PDF</span></div>
+            <a class="project" href="https://joebieker.com/cropcircle.us">
+                <h3>CropCircle.us</h3>
+                <span class="arrow" aria-hidden="true">↗</span>
+                <p>Storefront for American-made plant protectors.</p>
+                <span class="stack">HTML · CSS · Bootstrap</span>
             </a>
         </div>
-        <div class="flex gap-3">
-            <a href="https://www.linkedin.com/in/joseph-bieker/" target="_blank" class="w-11 h-11 bg-surface-container hover:bg-primary/15 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-all"><i class="fab fa-linkedin-in"></i></a>
-            <a href="https://github.com/joespeaker" target="_blank" class="w-11 h-11 bg-surface-container hover:bg-primary/15 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-all"><i class="fab fa-github"></i></a>
-            <a href="https://www.instagram.com/joe.speaker/" target="_blank" class="w-11 h-11 bg-surface-container hover:bg-primary/15 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-all"><i class="fab fa-instagram"></i></a>
-            <a href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX" target="_blank" class="w-11 h-11 bg-surface-container hover:bg-primary/15 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-all"><i class="fab fa-spotify"></i></a>
+    </section>
+
+    <section class="section" id="education">
+        <h2>Education</h2>
+        <div>
+            <div class="school">
+                <h3><a href="https://benedictine.edu/">Benedictine College</a></h3>
+                <p>B.A. Computer Science <span class="meta">· 2018 – 2023</span></p>
+                <p class="also">Track, Student Government, Campus Activities Board, president of the Disc Golf Club, Bible study.</p>
+            </div>
+            <div class="school">
+                <h3><a href="https://fcsacredheart.org/">Falls City Sacred Heart</a></h3>
+                <p>High school, 3.99 GPA <span class="meta">· 2014 – 2018</span></p>
+                <p class="also">National Honor Society, Student Council, football, basketball, track, band, choir.</p>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+
+    <section class="section" id="certifications">
+        <h2>Certifications</h2>
+        <ul class="certs">
+            <li><span><a href="https://www.credly.com/badges/8d451fb7-304d-498c-90b2-8fd20c250742/linked_in_profile">Data Engineering Practitioner</a> <span class="issuer">· Playfair Data</span></span><span class="meta">Jul 2023</span></li>
+            <li><span><a href="https://www.credly.com/badges/90bed88f-7323-4a40-9b54-555bfa10798c/linked_in_profile">Alteryx Foundational</a> <span class="issuer">· Alteryx</span></span><span class="meta">Jul 2023</span></li>
+            <li><span><a href="https://skillshop.exceedlms.com/profiles/ed8d750ed5af4b2b9900696eb126e7c8">Google Analytics IQ</a> <span class="issuer">· Google</span></span><span class="meta">Nov 2023</span></li>
+            <li><span><a href="https://www.linkedin.com/learning/certificates/0f4b048a1899f82dd452dcbb6ff7c3b181a8cbaecab293b6f49149d9804d7f84">Machine Learning with Python</a> <span class="issuer">· LinkedIn Learning</span></span><span class="meta">Apr 2023</span></li>
+            <li><span><a href="https://www.hackerrank.com/certificates/b114fb6b72ee">SQL (Intermediate)</a> <span class="issuer">· HackerRank</span></span><span class="meta">Apr 2022</span></li>
+            <li><span><a href="https://www.hackerrank.com/certificates/7a82bd7327cf">JavaScript (Basic)</a> <span class="issuer">· HackerRank</span></span><span class="meta">Feb 2022</span></li>
+            <li><span><a href="https://www.hackerrank.com/certificates/e5d365873066">Python (Basic)</a> <span class="issuer">· HackerRank</span></span><span class="meta">Nov 2021</span></li>
+            <li><span><a href="https://www.hackerrank.com/certificates/a7022653b485">Java (Basic)</a> <span class="issuer">· HackerRank</span></span><span class="meta">Apr 2021</span></li>
+            <li><span><a href="https://www.credential.net/9be89fd5-e51f-40a6-828e-98fb8ec5e30e">Excel Specialist</a> <span class="issuer">· Benedictine College</span></span><span class="meta">May 2020</span></li>
+        </ul>
+    </section>
+
+    <section class="section" id="references">
+        <h2>References</h2>
+        <div>
+            <figure class="quote">
+                <blockquote>
+                    <p>Joe was an intern on my Data Engineering team at Playfair Data - he tackled the backend data of our Google Analytics 4 dashboard. Though the GA4 API threw many limitations our way, Joe was very flexible and dove right into the GA4 data and documentation to understand the API. His strength in technical aptitude can really be seen in his work and his ability to grasp new tools and projects very quickly. During his time with us, he learned Tableau Prep and even spent some time in Google Big Query. Overall, it was a pleasure to have Joe on our team!</p>
+                </blockquote>
+                <figcaption><a href="https://www.linkedin.com/in/arianacukier">Ariana Cukier, MSHI</a> · Associate Director, Data Engineering, Playfair Data</figcaption>
+            </figure>
+            <figure class="quote">
+                <blockquote>
+                    <p>Joe is super adaptable and dedicated to furthering his knowledge and growth. I enjoyed working with Joe in Podium Education's support and tutoring chatbot for roughly two years. He helped thousands of students, mainly in Excel, Tableau, HTML, CSS, and JavaScript. He was knowledgeable in every instance and made a huge impact.</p>
+                    <p>I genuinely admire Joe's adaptability. During his time at Podium Education, the curriculum and protocols underwent many phases, and he quickly adjusted to those changing circumstances. He often wanted to go the extra mile and learn new material. Joe is a solid asset to any team.</p>
+                </blockquote>
+                <figcaption><a href="https://www.linkedin.com/in/amy-sparent/">Amy Sparent</a> · Academic Operations Manager, Podium Education</figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <section class="section contact" id="contact">
+        <h2>Contact</h2>
+        <div>
+            <p>Email is the best way to reach me.</p>
+            <p class="big"><a href="mailto:joebieker2486@outlook.com">joebieker2486@outlook.com</a></p>
+            <dl>
+                <dt>Phone</dt><dd><a href="tel:+14022457857">402-245-7857</a></dd>
+                <dt>LinkedIn</dt><dd><a href="https://www.linkedin.com/in/joseph-bieker/">in/joseph-bieker</a></dd>
+                <dt>Resume</dt><dd><a href="Joe%20Bieker%20-%20Resume.pdf">Download PDF</a></dd>
+            </dl>
+        </div>
+    </section>
 
 </main>
 
-<!-- Footer -->
-<footer class="w-full py-10 px-8">
-    <div class="flex flex-col md:flex-row justify-between items-center border-t border-outline-variant/10 max-w-7xl mx-auto pt-10">
-        <div class="text-primary font-body text-sm tracking-wide opacity-50">Joe Bieker &copy; 2025</div>
-        <div class="flex space-x-10 mt-6 md:mt-0">
-            <a class="text-on-surface/50 hover:text-primary transition-colors font-body text-sm tracking-wide" href="https://github.com/joespeaker" target="_blank">Github</a>
-            <a class="text-on-surface/50 hover:text-primary transition-colors font-body text-sm tracking-wide" href="https://www.linkedin.com/in/joseph-bieker/" target="_blank">LinkedIn</a>
-            <a class="text-on-surface/50 hover:text-primary transition-colors font-body text-sm tracking-wide" href="https://www.instagram.com/joe.speaker/" target="_blank">Instagram</a>
-        </div>
+<footer class="site-footer">
+    <div class="wrap meta">
+        <span>© <span id="year">2026</span> Joe Bieker</span>
+        <span>Kansas City</span>
     </div>
 </footer>
 
