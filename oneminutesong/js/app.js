@@ -11,7 +11,7 @@ const state = {
   keyPc: 0,
   mode: 'major',
   variants: [],   // chosen variant id per scale degree
-  selected: null, // selected degree (used for tap-to-place in stage 4)
+  selected: null, // palette degree waiting to be placed with a tap
   synth: 'ep',
   tempo: 100,
   reverb: 0.3,
@@ -19,7 +19,8 @@ const state = {
   kit: 'acoustic',    // or 'none'
   pattern: 'basic',
   swing: 0.15,
-  loop: [0, 4, 5, 3], // stage 2 test loop: last 4 tapped degrees (starts as I V vi IV)
+  barCount: 4,
+  bars: Array(8).fill(null), // each bar: { degree, variant } or null. Bars 5-8 kept when switching to 4.
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -39,9 +40,19 @@ function resetVariants() {
   state.selected = null;
 }
 
-function pcsFor(degree) {
+function pcsFor(degree, variant = state.variants[degree]) {
   const c = chords[degree];
-  return chordIntervals(state.variants[degree]).map((i) => (c.rootPc + i) % 12);
+  return chordIntervals(variant).map((i) => (c.rootPc + i) % 12);
+}
+
+// Placed bars keep their scale degree when the key changes, so the progression transposes.
+// A variant that doesn't fit the new chord quality (e.g. maj7 on a now-minor chord) resets.
+function fitBarsToKey() {
+  state.bars = state.bars.map((b) => {
+    if (!b) return null;
+    const c = chords[b.degree];
+    return { degree: b.degree, variant: c.variants.includes(b.variant) ? b.variant : c.defaultVariant };
+  });
 }
 
 /* ---------- Audio ---------- */
@@ -68,16 +79,16 @@ function audio() {
     scheduler = new Scheduler(ctx, {
       onStep,
       getTempo: () => state.tempo,
-      getTotalSteps: () => state.loop.length * 16,
+      getTotalSteps: () => state.barCount * 16,
     });
   } else {
     ensureAudio();
   }
 }
 
-function preview(degree) {
+function preview(degree, variant) {
   audio();
-  const notes = voiceChord(pcsFor(degree), lastPreview);
+  const notes = voiceChord(pcsFor(degree, variant), lastPreview);
   lastPreview = notes;
   previewTake.chord(state.synth, notes, ctx.currentTime + 0.01, 0.9);
 }
@@ -108,18 +119,20 @@ function renderKeys() {
 function setKey(pc) {
   state.keyPc = pc;
   resetVariants();
+  fitBarsToKey();
   renderKeys();
   renderPalette();
-  renderLoop();
+  renderTimeline();
   keysEl.querySelector(`[data-pc="${pc}"]`).focus();
 }
 
 function setMode(mode) {
   state.mode = mode;
   resetVariants();
+  fitBarsToKey();
   renderKeys();
   renderPalette();
-  renderLoop();
+  renderTimeline();
 }
 
 keysEl.addEventListener('click', (e) => {
@@ -184,9 +197,9 @@ function renderPalette() {
 }
 
 function selectChord(degree) {
-  state.selected = degree;
-  state.loop = [...state.loop.slice(1), degree];
-  renderLoop();
+  state.selected = state.selected === degree ? null : degree;
+  picked = null;
+  renderTimeline();
   renderPalette();
   paletteEl.querySelector(`[data-degree="${degree}"]`).focus();
   preview(degree);
@@ -201,6 +214,8 @@ let pressStart = null;
 paletteEl.addEventListener('pointerdown', (e) => {
   const b = e.target.closest('[data-degree]');
   if (!b) return;
+  const degree = Number(b.dataset.degree);
+  beginPress(e, { from: 'palette', degree, label: pretty(chordLabel(degree)) });
   longPressed = false;
   pressStart = { x: e.clientX, y: e.clientY };
   clearTimeout(pressTimer);
@@ -225,6 +240,7 @@ paletteEl.addEventListener('click', (e) => {
   const b = e.target.closest('[data-degree]');
   if (!b) return;
   if (longPressed) { longPressed = false; return; }
+  if (justDragged()) return;
   selectChord(Number(b.dataset.degree));
 });
 
@@ -281,7 +297,6 @@ variantsEl.addEventListener('click', (e) => {
   const b = e.target.closest('[data-variant]');
   if (!b) return;
   state.variants[sheetDegree] = b.dataset.variant;
-  renderLoop();
   state.selected = sheetDegree;
   renderVariants();
   renderPalette();
@@ -290,7 +305,14 @@ variantsEl.addEventListener('click', (e) => {
 });
 
 $('#sheet-done').addEventListener('click', () => sheet.close());
-sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); }); // backdrop tap
+// Backdrop tap closes the sheet, but only when the press also started on the backdrop.
+// Otherwise lifting the finger after a long-press would land on the backdrop and close it.
+let backdropPress = false;
+sheet.addEventListener('pointerdown', (e) => { backdropPress = e.target === sheet; });
+sheet.addEventListener('click', (e) => {
+  if (e.target === sheet && backdropPress) sheet.close();
+  backdropPress = false;
+});
 sheet.addEventListener('close', () => {
   const b = paletteEl.querySelector(`[data-degree="${sheetDegree}"]`);
   if (b) b.focus();
@@ -410,32 +432,256 @@ $('#swing').addEventListener('input', (e) => {
   $('#swing-out').textContent = `${e.target.value}%`;
 });
 
-/* ---------- Test loop transport ---------- */
+/* ---------- Timeline ---------- */
 
-const stripEl = $('#strip');
+const timelineEl = $('#timeline');
+const hintEl = $('#timeline-hint');
+const announceEl = $('#announce');
 const playBtn = $('#play');
 let playing = false;
-let loopVoicings = null;
-let loopSignature = '';
+let picked = null;       // bar index picked up by a tap, waiting for a second tap to swap
+let focusBar = 0;
+let timelineVoicings = null;
+let timelineSignature = '';
 
-function renderLoop() {
-  stripEl.querySelectorAll('.slot').forEach((el) => el.remove());
-  state.loop.forEach((d, i) => {
-    const el = document.createElement('div');
-    el.className = 'slot';
-    el.dataset.bar = i;
-    el.textContent = pretty(chordLabel(d));
-    stripEl.append(el);
-  });
+function slotName(b) {
+  return pretty(chordName(chords[b.degree].root, b.variant));
 }
 
-function voicingsForLoop() {
-  const sig = state.loop.map((d) => `${state.keyPc}${state.mode}${d}${state.variants[d]}`).join('|');
-  if (sig !== loopSignature) {
-    loopSignature = sig;
-    loopVoicings = voiceProgression(state.loop.map(pcsFor));
+function announce(msg) {
+  announceEl.textContent = msg;
+}
+
+function renderTimeline() {
+  timelineEl.innerHTML = '';
+  timelineEl.classList.toggle('eight', state.barCount === 8);
+  for (let i = 0; i < state.barCount; i++) {
+    const b = state.bars[i];
+    const wrap = document.createElement('div');
+    wrap.className = 'bar-wrap';
+
+    const slot = document.createElement('button');
+    slot.type = 'button';
+    slot.className = 'key bar';
+    slot.dataset.slot = i;
+    slot.tabIndex = i === focusBar ? 0 : -1;
+    slot.classList.toggle('empty', !b);
+    slot.classList.toggle('picked', picked === i);
+    slot.classList.toggle('target', state.selected !== null);
+    const label = b ? slotName(b) : 'empty';
+    slot.setAttribute('aria-label', `Bar ${i + 1}: ${label}`);
+    slot.innerHTML = `<span class="num">${i + 1}</span>`
+      + (b ? `<span class="name">${label}</span><span class="roman">${chords[b.degree].roman}</span>` : '<span class="plus" aria-hidden="true">+</span>')
+      + '<span class="prog" aria-hidden="true"></span>';
+    wrap.append(slot);
+
+    if (b) {
+      const x = document.createElement('button');
+      x.type = 'button';
+      x.className = 'x';
+      x.dataset.remove = i;
+      x.tabIndex = -1;
+      x.setAttribute('aria-label', `Remove ${label} from bar ${i + 1}`);
+      x.textContent = '×';
+      wrap.append(x);
+    }
+    timelineEl.append(wrap);
   }
-  return loopVoicings;
+
+  if (state.selected !== null) {
+    hintEl.textContent = `Tap a bar to place ${pretty(chordLabel(state.selected))}.`;
+  } else if (picked !== null) {
+    hintEl.textContent = 'Tap another bar to swap, or drag it off the timeline to remove.';
+  } else {
+    hintEl.textContent = 'Tap a chord, then tap a bar. Or drag it in.';
+  }
+  for (const b of barsToggle.querySelectorAll('button')) {
+    b.setAttribute('aria-checked', String(Number(b.dataset.bars) === state.barCount));
+  }
+}
+
+function focusSlot(i) {
+  focusBar = i;
+  const el = timelineEl.querySelector(`[data-slot="${i}"]`);
+  if (el) { timelineEl.querySelectorAll('[data-slot]').forEach((s) => { s.tabIndex = -1; }); el.tabIndex = 0; el.focus(); }
+}
+
+function place(i, degree) {
+  const variant = state.variants[degree];
+  state.bars[i] = { degree, variant };
+  state.selected = null;
+  picked = null;
+  renderPalette();
+  renderTimeline();
+  preview(degree, variant);
+  announce(`Placed ${slotName(state.bars[i])} in bar ${i + 1}.`);
+}
+
+function swap(i, j) {
+  [state.bars[i], state.bars[j]] = [state.bars[j], state.bars[i]];
+  picked = null;
+  renderTimeline();
+  announce(`Swapped bars ${i + 1} and ${j + 1}.`);
+}
+
+function removeBar(i) {
+  const b = state.bars[i];
+  if (!b) return;
+  state.bars[i] = null;
+  if (picked === i) picked = null;
+  renderTimeline();
+  announce(`Removed ${slotName(b)} from bar ${i + 1}.`);
+}
+
+function tapSlot(i) {
+  const b = state.bars[i];
+  if (state.selected !== null) { place(i, state.selected); return; }
+  if (picked === null) {
+    if (b) { picked = i; preview(b.degree, b.variant); announce(`Picked up ${slotName(b)} from bar ${i + 1}.`); }
+    else { hintEl.classList.remove('nudge'); void hintEl.offsetWidth; hintEl.classList.add('nudge'); }
+  } else if (picked === i) {
+    picked = null;
+  } else {
+    swap(picked, i);
+    return;
+  }
+  renderTimeline();
+}
+
+timelineEl.addEventListener('click', (e) => {
+  const x = e.target.closest('[data-remove]');
+  if (x) { removeBar(Number(x.dataset.remove)); return; }
+  const slot = e.target.closest('[data-slot]');
+  if (!slot || justDragged()) return;
+  focusBar = Number(slot.dataset.slot);
+  tapSlot(focusBar);
+  focusSlot(focusBar);
+});
+
+timelineEl.addEventListener('pointerdown', (e) => {
+  const slot = e.target.closest('[data-slot]');
+  if (!slot) return;
+  const i = Number(slot.dataset.slot);
+  if (state.bars[i]) beginPress(e, { from: 'slot', index: i, label: slotName(state.bars[i]) });
+});
+
+timelineEl.addEventListener('keydown', (e) => {
+  const slot = e.target.closest('[data-slot]');
+  if (!slot) return;
+  const i = Number(slot.dataset.slot);
+  const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 4, ArrowUp: -4 }[e.key];
+  if (step !== undefined) {
+    e.preventDefault();
+    focusSlot(Math.min(state.barCount - 1, Math.max(0, i + step)));
+  } else if (e.key === 'Delete' || e.key === 'Backspace') {
+    e.preventDefault();
+    removeBar(i);
+    focusSlot(i);
+  } else if (e.key === 'Escape') {
+    picked = null;
+    state.selected = null;
+    renderPalette();
+    renderTimeline();
+    focusSlot(i);
+  }
+});
+
+const barsToggle = $('#bars-toggle');
+barsToggle.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-bars]');
+  if (!b) return;
+  state.barCount = Number(b.dataset.bars);
+  focusBar = Math.min(focusBar, state.barCount - 1);
+  if (picked !== null && picked >= state.barCount) picked = null;
+  renderTimeline();
+});
+$('#clear').addEventListener('click', () => {
+  state.bars = Array(8).fill(null);
+  picked = null;
+  renderTimeline();
+  announce('Cleared the timeline.');
+});
+
+/* ---------- Drag and drop (pointer events, works for mouse, touch and pen) ---------- */
+
+let press = null;
+let dragGhost = null;
+let suppressClickUntil = 0;
+const DRAG_THRESHOLD = 8;
+
+function justDragged() {
+  return performance.now() < suppressClickUntil;
+}
+
+function beginPress(e, payload) {
+  press = { ...payload, pointerId: e.pointerId, x: e.clientX, y: e.clientY, active: false };
+}
+
+function slotUnder(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el ? el.closest('[data-slot]') : null;
+}
+
+function endDrag() {
+  if (dragGhost) dragGhost.remove();
+  dragGhost = null;
+  document.body.classList.remove('dragging');
+  timelineEl.querySelectorAll('.over').forEach((el) => el.classList.remove('over'));
+  press = null;
+}
+
+document.addEventListener('pointermove', (e) => {
+  if (!press || e.pointerId !== press.pointerId) return;
+  if (!press.active) {
+    if (Math.hypot(e.clientX - press.x, e.clientY - press.y) < DRAG_THRESHOLD) return;
+    press.active = true;
+    clearTimeout(pressTimer); // a drag is not a long-press
+    dragGhost = document.createElement('div');
+    dragGhost.className = 'ghost';
+    dragGhost.textContent = press.label;
+    dragGhost.setAttribute('aria-hidden', 'true');
+    document.body.append(dragGhost);
+    document.body.classList.add('dragging');
+  }
+  e.preventDefault();
+  dragGhost.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -120%)`;
+  const over = slotUnder(e.clientX, e.clientY);
+  timelineEl.querySelectorAll('.over').forEach((el) => { if (el !== over) el.classList.remove('over'); });
+  if (over) over.classList.add('over');
+}, { passive: false });
+
+document.addEventListener('pointerup', (e) => {
+  if (!press || e.pointerId !== press.pointerId) return;
+  if (press.active) {
+    suppressClickUntil = performance.now() + 400;
+    const target = slotUnder(e.clientX, e.clientY);
+    const j = target ? Number(target.dataset.slot) : null;
+    if (press.from === 'palette' && j !== null) {
+      place(j, press.degree);
+    } else if (press.from === 'slot') {
+      const overTimeline = document.elementFromPoint(e.clientX, e.clientY)?.closest('#timeline');
+      if (j !== null && j !== press.index) {
+        // Drop on an empty bar = move; on a full bar = swap.
+        swap(press.index, j);
+      } else if (!overTimeline) {
+        removeBar(press.index);
+      }
+    }
+  }
+  endDrag();
+});
+document.addEventListener('pointercancel', endDrag);
+
+/* ---------- Playback ---------- */
+
+function voicingsForTimeline() {
+  const bars = state.bars.slice(0, state.barCount);
+  const sig = `${state.keyPc}${state.mode}|` + bars.map((b) => (b ? `${b.degree}${b.variant}` : '-')).join('|');
+  if (sig !== timelineSignature) {
+    timelineSignature = sig;
+    timelineVoicings = voiceProgression(bars.map((b) => (b ? pcsFor(b.degree, b.variant) : null)));
+  }
+  return timelineVoicings;
 }
 
 // Swing delays every off-beat 16th. 0 = straight, 1 = full triplet-ish shuffle.
@@ -460,30 +706,38 @@ function scheduleDrums(target, s, t, stepDur) {
 }
 
 function onStep(step, t, stepDur) {
-  const bar = Math.floor(step / 16) % state.loop.length;
+  const bar = Math.floor(step / 16) % state.barCount;
   const s = step % 16;
-  const degree = state.loop[bar];
-  const notes = voicingsForLoop()[bar];
+  const b = state.bars[bar];
   const ts = t + swingOffset(s, stepDur);
-  for (const [at, len] of SYNTHS[state.synth].rhythm) {
-    if (at === s) take.chord(state.synth, notes, ts, len * stepDur);
-  }
-  if (state.bass) {
-    for (const [at, len] of BASS.rhythm) {
-      if (at === s) take.bass(bassMidi(chords[degree].rootPc), ts, len * stepDur);
+  if (b) {
+    const notes = voicingsForTimeline()[bar];
+    for (const [at, len] of SYNTHS[state.synth].rhythm) {
+      if (at === s) take.chord(state.synth, notes, ts, len * stepDur);
+    }
+    if (state.bass) {
+      for (const [at, len] of BASS.rhythm) {
+        if (at === s) take.bass(bassMidi(chords[b.degree].rootPc), ts, len * stepDur);
+      }
     }
   }
   scheduleDrums(drumTake, s, t, stepDur);
+}
+
+function clearPlayhead() {
+  timelineEl.querySelectorAll('.on').forEach((el) => el.classList.remove('on'));
 }
 
 function drawPlayhead() {
   if (!playing) return;
   const step = scheduler.currentStep();
   if (step !== null) {
-    const total = state.loop.length * 16;
-    stripEl.style.setProperty('--pos', String(step / total));
-    const bar = Math.floor(step / 16);
-    stripEl.querySelectorAll('.slot').forEach((el) => el.classList.toggle('on', Number(el.dataset.bar) === bar));
+    const bar = Math.floor(step / 16) % state.barCount;
+    timelineEl.querySelectorAll('[data-slot]').forEach((el) => {
+      const on = Number(el.dataset.slot) === bar;
+      el.classList.toggle('on', on);
+      if (on) el.style.setProperty('--p', String((step % 16) / 16));
+    });
   }
   requestAnimationFrame(drawPlayhead);
 }
@@ -494,7 +748,6 @@ function setPlaying(on) {
   playing = on;
   playBtn.setAttribute('aria-pressed', String(on));
   playBtn.textContent = on ? '■ Stop' : '▶ Play';
-  stripEl.classList.toggle('playing', on);
   if (on) {
     take = rack.createTake();
     drumTake = drumRack.createTake();
@@ -506,7 +759,7 @@ function setPlaying(on) {
     drumTake.stop();
     take = null;
     drumTake = null;
-    stripEl.querySelectorAll('.slot').forEach((el) => el.classList.remove('on'));
+    clearPlayhead();
   }
 }
 
@@ -524,4 +777,4 @@ resetVariants();
 renderKeys();
 renderPalette();
 renderSynths();
-renderLoop();
+renderTimeline();
