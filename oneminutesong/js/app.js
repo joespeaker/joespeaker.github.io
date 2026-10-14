@@ -1,13 +1,21 @@
 import {
   KEY_NAMES, diatonicChords, chordName, chordNotes, chordIntervals, pretty, VARIANTS, keyName,
 } from './theory.js';
-import { playChord } from './preview.js';
+import { voiceChord, voiceProgression } from './voicing.js';
+import { ensureAudio, dryBus, setReverbMix } from './audio/engine.js';
+import { SYNTHS, SYNTH_IDS, BASS, bassMidi, createSynthRack } from './audio/synths.js';
+import { Scheduler } from './audio/scheduler.js';
 
 const state = {
   keyPc: 0,
   mode: 'major',
   variants: [],   // chosen variant id per scale degree
   selected: null, // selected degree (used for tap-to-place in stage 4)
+  synth: 'ep',
+  tempo: 100,
+  reverb: 0.3,
+  bass: true,
+  loop: [0, 4, 5, 3], // stage 2 test loop: last 4 tapped degrees (starts as I V vi IV)
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -27,15 +35,42 @@ function resetVariants() {
   state.selected = null;
 }
 
-// Close voicing with the root in octave 3 (C3 = MIDI 48). Stage 2 adds voice leading.
-function midiFor(degree) {
+function pcsFor(degree) {
   const c = chords[degree];
-  const root = 48 + c.rootPc;
-  return chordIntervals(state.variants[degree]).map((i) => root + i);
+  return chordIntervals(state.variants[degree]).map((i) => (c.rootPc + i) % 12);
+}
+
+/* ---------- Audio ---------- */
+
+let ctx = null;
+let rack = null;
+let previewTake = null;
+let lastPreview = null;
+let scheduler = null;
+let take = null;
+
+// Called from inside a tap/click/keypress so iOS lets audio start.
+function audio() {
+  if (!rack) {
+    ctx = ensureAudio();
+    rack = createSynthRack(ctx, dryBus());
+    previewTake = rack.createTake();
+    setReverbMix(state.reverb);
+    scheduler = new Scheduler(ctx, {
+      onStep,
+      getTempo: () => state.tempo,
+      getTotalSteps: () => state.loop.length * 16,
+    });
+  } else {
+    ensureAudio();
+  }
 }
 
 function preview(degree) {
-  playChord(midiFor(degree));
+  audio();
+  const notes = voiceChord(pcsFor(degree), lastPreview);
+  lastPreview = notes;
+  previewTake.chord(state.synth, notes, ctx.currentTime + 0.01, 0.9);
 }
 
 /* ---------- Key picker ---------- */
@@ -66,6 +101,7 @@ function setKey(pc) {
   resetVariants();
   renderKeys();
   renderPalette();
+  renderLoop();
   keysEl.querySelector(`[data-pc="${pc}"]`).focus();
 }
 
@@ -74,6 +110,7 @@ function setMode(mode) {
   resetVariants();
   renderKeys();
   renderPalette();
+  renderLoop();
 }
 
 keysEl.addEventListener('click', (e) => {
@@ -139,6 +176,8 @@ function renderPalette() {
 
 function selectChord(degree) {
   state.selected = degree;
+  state.loop = [...state.loop.slice(1), degree];
+  renderLoop();
   renderPalette();
   paletteEl.querySelector(`[data-degree="${degree}"]`).focus();
   preview(degree);
@@ -233,6 +272,7 @@ variantsEl.addEventListener('click', (e) => {
   const b = e.target.closest('[data-variant]');
   if (!b) return;
   state.variants[sheetDegree] = b.dataset.variant;
+  renderLoop();
   state.selected = sheetDegree;
   renderVariants();
   renderPalette();
@@ -247,8 +287,141 @@ sheet.addEventListener('close', () => {
   if (b) b.focus();
 });
 
+/* ---------- Sound controls ---------- */
+
+const synthsEl = $('#synths');
+
+function renderSynths() {
+  synthsEl.innerHTML = '';
+  for (const id of SYNTH_IDS) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'key synth';
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', String(id === state.synth));
+    b.tabIndex = id === state.synth ? 0 : -1;
+    b.dataset.synth = id;
+    b.textContent = SYNTHS[id].label;
+    synthsEl.append(b);
+  }
+}
+
+function setSynth(id) {
+  state.synth = id;
+  renderSynths();
+  synthsEl.querySelector(`[data-synth="${id}"]`).focus();
+  if (!playing) preview(state.selected ?? 0);
+}
+
+synthsEl.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-synth]');
+  if (b) setSynth(b.dataset.synth);
+});
+synthsEl.addEventListener('keydown', (e) => {
+  const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+  if (step === undefined) return;
+  e.preventDefault();
+  const i = SYNTH_IDS.indexOf(state.synth);
+  setSynth(SYNTH_IDS[(i + step + SYNTH_IDS.length) % SYNTH_IDS.length]);
+});
+
+$('#tempo').addEventListener('input', (e) => {
+  state.tempo = Number(e.target.value);
+  $('#tempo-out').textContent = state.tempo;
+});
+$('#reverb').addEventListener('input', (e) => {
+  state.reverb = Number(e.target.value) / 100;
+  $('#reverb-out').textContent = `${e.target.value}%`;
+  setReverbMix(state.reverb);
+});
+$('#bass').addEventListener('change', (e) => { state.bass = e.target.checked; });
+
+/* ---------- Test loop transport ---------- */
+
+const stripEl = $('#strip');
+const playBtn = $('#play');
+let playing = false;
+let loopVoicings = null;
+let loopSignature = '';
+
+function renderLoop() {
+  stripEl.querySelectorAll('.slot').forEach((el) => el.remove());
+  state.loop.forEach((d, i) => {
+    const el = document.createElement('div');
+    el.className = 'slot';
+    el.dataset.bar = i;
+    el.textContent = pretty(chordLabel(d));
+    stripEl.append(el);
+  });
+}
+
+function voicingsForLoop() {
+  const sig = state.loop.map((d) => `${state.keyPc}${state.mode}${d}${state.variants[d]}`).join('|');
+  if (sig !== loopSignature) {
+    loopSignature = sig;
+    loopVoicings = voiceProgression(state.loop.map(pcsFor));
+  }
+  return loopVoicings;
+}
+
+function onStep(step, t, stepDur) {
+  const bar = Math.floor(step / 16) % state.loop.length;
+  const s = step % 16;
+  const degree = state.loop[bar];
+  const notes = voicingsForLoop()[bar];
+  for (const [at, len] of SYNTHS[state.synth].rhythm) {
+    if (at === s) take.chord(state.synth, notes, t, len * stepDur);
+  }
+  if (state.bass) {
+    for (const [at, len] of BASS.rhythm) {
+      if (at === s) take.bass(bassMidi(chords[degree].rootPc), t, len * stepDur);
+    }
+  }
+}
+
+function drawPlayhead() {
+  if (!playing) return;
+  const step = scheduler.currentStep();
+  if (step !== null) {
+    const total = state.loop.length * 16;
+    stripEl.style.setProperty('--pos', String(step / total));
+    const bar = Math.floor(step / 16);
+    stripEl.querySelectorAll('.slot').forEach((el) => el.classList.toggle('on', Number(el.dataset.bar) === bar));
+  }
+  requestAnimationFrame(drawPlayhead);
+}
+
+function setPlaying(on) {
+  audio();
+  if (on === playing) return;
+  playing = on;
+  playBtn.setAttribute('aria-pressed', String(on));
+  playBtn.textContent = on ? '■ Stop' : '▶ Play';
+  stripEl.classList.toggle('playing', on);
+  if (on) {
+    take = rack.createTake();
+    scheduler.start(0);
+    requestAnimationFrame(drawPlayhead);
+  } else {
+    scheduler.stop();
+    take.stop();
+    take = null;
+    stripEl.querySelectorAll('.slot').forEach((el) => el.classList.remove('on'));
+  }
+}
+
+playBtn.addEventListener('click', () => setPlaying(!playing));
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && e.target === document.body) {
+    e.preventDefault();
+    setPlaying(!playing);
+  }
+});
+
 /* ---------- Boot ---------- */
 
 resetVariants();
 renderKeys();
 renderPalette();
+renderSynths();
+renderLoop();

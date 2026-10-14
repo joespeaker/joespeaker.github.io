@@ -16,7 +16,7 @@
 
     <header class="label">
         <h1>One Minute Song</h1>
-        <p>Stage 1 preview: pick a key and play with the chords.</p>
+        <p>Stage 2 preview: chords, synths and a test loop.</p>
     </header>
 
     <section class="panel" aria-labelledby="key-h">
@@ -36,6 +36,40 @@
             <p class="hint">Tap to hear · hold or ⋯ for variants</p>
         </div>
         <div class="palette" id="palette" role="group" aria-label="Chord palette"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="sound-h">
+        <div class="panel-head">
+            <h2 id="sound-h">Sound</h2>
+        </div>
+        <div class="synths" id="synths" role="radiogroup" aria-label="Chord sound"></div>
+        <div class="knobs">
+            <label class="knob" for="tempo">
+                <span>Tempo <output id="tempo-out" for="tempo">100</output> BPM</span>
+                <input type="range" id="tempo" min="70" max="160" step="1" value="100">
+            </label>
+            <label class="knob" for="reverb">
+                <span>Reverb <output id="reverb-out" for="reverb">30%</output></span>
+                <input type="range" id="reverb" min="0" max="100" step="1" value="30">
+            </label>
+            <label class="switch" for="bass">
+                <input type="checkbox" id="bass" checked>
+                <span>Bass</span>
+            </label>
+        </div>
+    </section>
+
+    <section class="panel" aria-labelledby="loop-h">
+        <div class="panel-head">
+            <h2 id="loop-h">Test loop</h2>
+            <p class="hint">Plays the last 4 chords you tapped</p>
+        </div>
+        <div class="transport">
+            <button type="button" class="key play" id="play" aria-pressed="false">▶ Play</button>
+            <div class="strip" id="strip" aria-label="Test loop bars">
+                <div class="playhead" aria-hidden="true"></div>
+            </div>
+        </div>
     </section>
 
     <footer class="footer">Made by <a href="https://joebieker.com">Joe Bieker</a></footer>
