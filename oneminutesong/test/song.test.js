@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   newSong, placeBlock, moveBlock, resizeBlock, removeBlock, setBlockNotes, addNote, moveNote,
   resizeNote, generateBass, freezeBass, fillDrums, toggleDrum, laneString, setBars, changeKey,
-  audible, fromV1, totalSteps,
+  audible, fromV1, totalSteps, normalizeSong,
 } from '../js/song.js';
 import { compile, expandBlock, blockVoicings } from '../js/compile.js';
 import { encodeSongV2, decodeSongV2, encodeSong, decodeSong } from '../js/share.js';
@@ -113,6 +113,17 @@ test('changing key transposes everything; changing mode keeps scale degrees', ()
   assert.equal(b.v, 'min', 'maj7 does not fit a minor i chord');
 });
 
+test('single notes in the chord roll play with the chord instrument and follow the key', () => {
+  const song = newSong();
+  placeBlock(song, { s: 0, d: 0, v: 'maj' });
+  const n = addNote(song, 'chords', { s: 4, l: 2, p: 76 });  // E5 in C major
+  const hits = compile(song).steps[4].filter((e) => e.track === 'chords' && e.notes.length === 1);
+  assert.deepEqual(hits.map((e) => [e.inst, e.notes[0], e.l]), [['piano', 76, 2]]);
+  changeKey(song, 0, 'minor');                                // the 3rd drops a semitone
+  assert.equal(n.p, 75);
+  assert.deepEqual(normalizeSong({ tracks: { chords: { blocks: [] } } }).tracks.chords.notes, []);
+});
+
 test('mute and solo', () => {
   const song = newSong();
   assert.ok(audible(song, 'melody'));
@@ -147,6 +158,7 @@ test('v2 share links round-trip a full song', async () => {
   setBlockNotes(song, pin.id, [55, 62, 66, 71]);
   song.tracks.chords.style = 'arp';
   song.tracks.chords.inst = 'strings';
+  addNote(song, 'chords', { s: 6, l: 3, p: 74, v: 0.7 });
   addNote(song, 'melody', { s: 3, l: 5, p: 79, v: 0.6 });
   addNote(song, 'melody', { s: 100, l: 12, p: 74 });
   song.tracks.melody.inst = 'lead';

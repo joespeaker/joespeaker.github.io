@@ -51,6 +51,8 @@ solo (S) and volume.
   - Tap a block twice for its options: change the chord, pick a variant, or reset its
     voicing.
   - In the piano roll, drag a chord note up or down to change the voicing.
+  - Draw single notes in the chord roll's empty space (click and drag, or tap on touch).
+    They play on the chords instrument, exactly as drawn, on top of the chord blocks.
   - "Play as" sets the rhythm: hold, half notes, quarters, offbeats, strummed 8ths or
     arpeggio.
 - **Melody and bass:**
@@ -103,7 +105,7 @@ list. Run `npm test` after editing to catch typos.
 | `tools/fetch_samples.py` | Downloads, trims and encodes the samples |
 
 The song is stored in 16th-note steps. Chords are blocks with a start, length, scale degree,
-variant and optional pinned notes. Melody and bass are notes. Drums are one string per
+variant and optional pinned notes. Melody, bass and the chord roll's single notes are notes. Drums are one string per
 lane (`x` accent, `o` hit, `g` ghost, `.` rest). Because chords store scale degrees,
 changing the key transposes the whole song.
 
