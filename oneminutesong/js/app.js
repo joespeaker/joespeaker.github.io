@@ -12,6 +12,7 @@ import { Scheduler } from './audio/scheduler.js';
 import {
   newSong, totalSteps, TRACK_IDS, CHORD_STYLES, placeBlock, findBlock,
   setBlockChord, removeBlock, removeNote, fillDrums, setBars, changeKey, freezeBass, fromV1,
+  normalizeSong,
 } from './song.js';
 import { compile } from './compile.js';
 import { createEditor, ZOOM_STEPS } from './ui/editor.js';
@@ -110,7 +111,8 @@ function scheduleSave() {
 function savedSong() {
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (s && s.tracks && (s.tracks.chords.blocks.length || s.tracks.melody.notes.length)) return s;
+    if (s && s.tracks) normalizeSong(s);
+    if (s && s.tracks && (s.tracks.chords.blocks.length || s.tracks.chords.notes.length || s.tracks.melody.notes.length)) return s;
   } catch { /* nothing saved */ }
   return null;
 }
@@ -672,7 +674,7 @@ function renderHint() {
   hintEl.textContent = {
     chords: selName
       ? `Tap the chord lane to place ${selName}.`
-      : 'Drag chords from the palette onto the lane. Drag a block to move it, its right edge to stretch it, or off the lane to remove it. Tap a block twice for its options. Drag a note up or down to change the voicing.',
+      : `Drag chords from the palette onto the lane. Drag a block to move it, its right edge to stretch it, or off the lane to remove it. Tap a block twice for its options. Drag a chord note up or down to change the voicing. ${coarse.matches ? 'Tap an empty spot in the roll to add a single note.' : 'Click and drag in empty space to draw single notes.'}`,
     melody: draw,
     bass: song.tracks.bass.auto ? `The bass follows your chords. ${draw} Editing any note takes it over.` : draw,
     drums: 'Tap a step to cycle it: hit, accent, off. Pick a pattern above to start from.',
@@ -700,7 +702,7 @@ toolsEl.addEventListener('click', (e) => {
     const label = TRACK_LABELS[ui.track];
     commit(`Clear ${label}`, () => {
       const t = song.tracks[ui.track];
-      if (ui.track === 'chords') t.blocks = [];
+      if (ui.track === 'chords') { t.blocks = []; t.notes = []; }
       else if (ui.track === 'drums') t.grid = {};
       else if (ui.track === 'bass') { t.auto = false; t.notes = []; }
       else t.notes = [];
@@ -733,7 +735,7 @@ function deleteSelection() {
   const sel = ui.selected;
   if (!sel) return false;
   if (sel.type === 'block') commit('Remove chord', () => removeBlock(song, sel.id));
-  else if (sel.type === 'note' && (ui.track === 'melody' || ui.track === 'bass')) {
+  else if (sel.type === 'note' && ui.track !== 'drums') {
     commit('Delete note', () => {
       if (ui.track === 'bass') freezeBass(song);
       removeNote(song, ui.track, sel.id);

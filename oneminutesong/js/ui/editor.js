@@ -1,5 +1,6 @@
 // The track editor: a ruler, a chord lane (blocks you drop chords onto), and below it
-// either a piano roll (chords, melody, bass) or a drum step grid.
+// either a piano roll (chords, melody, bass) or a drum step grid. The chords roll shows
+// the blocks' voicings plus any single notes drawn there.
 //
 // Mouse/pen: drag on empty grid to draw a note (drag right to set its length), drag a
 // note to move it, drag its right edge to resize, double-click to delete.
@@ -46,6 +47,9 @@ export function createEditor(root, ctx) {
   const keysW = () => (ctx.track() === 'drums' ? 74 : 46);
   const range = () => RANGES[ctx.track()] || RANGES.melody;
   const editable = () => ctx.track() !== 'drums';
+  // Empty roll space draws a note, except on the chords track while a palette chord is
+  // picked (then a click places that chord).
+  const canDraw = () => ctx.track() === 'melody' || ctx.track() === 'bass' || (ctx.track() === 'chords' && ctx.ui.paletteSel === null);
 
   /* ---------- Rendering ---------- */
 
@@ -179,6 +183,7 @@ export function createEditor(root, ctx) {
           }
         });
       }
+      for (const n of song.tracks.chords.notes) out.push({ ...n, cls: 'free' });
       return out;
     }
     if (track === 'bass') {
@@ -282,7 +287,7 @@ export function createEditor(root, ctx) {
     const inLane = e.target.closest('.chord-lane');
     if (inGrid || inLane) {
       drag = {
-        kind: isTouch(e) ? 'pan' : (inGrid && (track === 'melody' || track === 'bass') ? 'draw' : 'tap'),
+        kind: isTouch(e) ? 'pan' : (inGrid && canDraw() ? 'draw' : 'tap'),
         x: e.clientX, y: e.clientY, sl: scroller.scrollLeft, st: scroller.scrollTop, moved: false, began: false, inLane: Boolean(inLane),
       };
       if (drag.kind === 'draw') {
@@ -446,7 +451,7 @@ export function createEditor(root, ctx) {
         if (d.kind === 'pan' && d.moved) break;
         const step = snapDown(stepAt(e.clientX, d.inLane ? laneEl : gridEl), Math.max(ctx.ui.snap, d.inLane ? 2 : 1));
         if ((d.inLane || track === 'chords') && ctx.placePaletteChord(step)) break;
-        if (!d.inLane && (track === 'melody' || track === 'bass')) {
+        if (!d.inLane && track !== 'drums') {
           // Touch tap on empty grid adds a note.
           ctx.commit('Add note', () => {
             if (track === 'bass') freezeBass(song);
@@ -513,8 +518,7 @@ export function createEditor(root, ctx) {
     if (!e.target.closest('.grid')) return;
     const song = ctx.song();
     const track = ctx.track();
-    if (track === 'chords') return;
-    const notes = track === 'bass' ? bassNotes(song) : song.tracks.melody.notes;
+    const notes = track === 'bass' ? bassNotes(song) : song.tracks[track].notes;
     const sel = ctx.ui.selected && ctx.ui.selected.type === 'note' ? notes.find((n) => n.id === ctx.ui.selected.id) : null;
     if (e.key === '[' || e.key === ']') {
       e.preventDefault();
@@ -585,7 +589,7 @@ export function createEditor(root, ctx) {
       const song = ctx.song();
       const track = ctx.track();
       const [lo, hi] = range();
-      const ps = track === 'chords' ? [...ctx.compiled().voicings.values()].flat() : noteRects(song, track).map((n) => n.p);
+      const ps = noteRects(song, track).map((n) => n.p);
       const mid = ps.length ? ps.reduce((a, b) => a + b, 0) / ps.length : (lo + hi) / 2;
       scroller.scrollTop = Math.max(0, (hi - mid) * ROW - scroller.clientHeight / 2 + RULER_H + LANE_H);
     },

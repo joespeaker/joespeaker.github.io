@@ -107,7 +107,7 @@ export function decodeSong(hash) {
  * #v2=<z|j><base64url>. "z" = deflate-raw compressed JSON (CompressionStream), "j" = plain
  * JSON for browsers without it. The JSON is a positional array:
  *   [2, keyPc, mode(0/1), bars, tempo, swing%, reverb%,
- *    chords: [inst, vol%, flags, style, [[s, l, degree, variant#, notes|0], …]],
+ *    chords: [inst, vol%, flags, style, [[s, l, degree, variant#, notes|0], …], [[s, l, pitch, vel%], …]],
  *    melody: [inst, vol%, flags, [[s, l, pitch, vel%], …]],
  *    bass:   [inst, vol%, flags, auto(1/0), [[s, l, pitch, vel%], …]],
  *    drums:  [kit, vol%, flags, pattern, kick, snare, hat, open, ride],  (grid rows as strings)
@@ -125,7 +125,7 @@ function compact(song) {
   return [
     2, song.keyPc, song.mode === 'minor' ? 1 : 0, song.bars, song.tempo, pct(song.swing), pct(song.reverb),
     [t.chords.inst, pct(t.chords.vol), flags(t.chords), t.chords.style,
-      t.chords.blocks.map((b) => [b.s, b.l, b.d, V1.variants.indexOf(b.v), b.n || 0])],
+      t.chords.blocks.map((b) => [b.s, b.l, b.d, V1.variants.indexOf(b.v), b.n || 0]), notesOut(t.chords.notes)],
     [t.melody.inst, pct(t.melody.vol), flags(t.melody), notesOut(t.melody.notes)],
     [t.bass.inst, pct(t.bass.vol), flags(t.bass), t.bass.auto ? 1 : 0, t.bass.auto ? [] : notesOut(t.bass.notes)],
     [t.drums.kit, pct(t.drums.vol), flags(t.drums), t.drums.pattern, ...DRUM_LANES.map((l) => t.drums.grid[l] || '')],
@@ -169,6 +169,8 @@ function expand(p) {
     id: newId(), s: num(s, 0, total - 1, 0), l: num(l, 1, total, 16), d: num(d, 0, 6, 0),
     v: V1.variants[v] || 'maj', n: Array.isArray(n) && n.length ? n.map((x) => num(x, RANGES.chords[0], RANGES.chords[1], 60)) : null,
   }));
+
+  t.chords.notes = notesIn(c[5], RANGES.chords, total);
 
   const m = arr(p[8]);
   trackCommon(t.melody, m);

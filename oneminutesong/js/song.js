@@ -4,6 +4,7 @@
 // Time is measured in 16th-note steps (16 per bar). A song has four tracks:
 //   chords  blocks: [{ id, s, l, d, v, n }]  start, length, scale degree, variant,
 //                                            and n = custom notes (MIDI) or null for auto voicing
+//          notes:  [{ id, s, l, p, v }]     single notes drawn in the chord roll, played as-is
 //   melody  notes:  [{ id, s, l, p, v }]     start, length, pitch (MIDI), velocity 0..1
 //   bass    notes, plus auto: true while it's generated from the chords
 //   drums   grid: { lane: 'x.o.…' }           one char per step: x accent, o hit, g ghost, . rest
@@ -44,7 +45,7 @@ export function newSong() {
     swing: 0.15,
     reverb: 0.25,
     tracks: {
-      chords: { inst: 'piano', vol: 0.8, mute: false, solo: false, style: 'half', blocks: [] },
+      chords: { inst: 'piano', vol: 0.8, mute: false, solo: false, style: 'half', blocks: [], notes: [] },
       melody: { inst: 'vibes', vol: 0.8, mute: false, solo: false, notes: [] },
       bass: { inst: 'bass', vol: 0.8, mute: false, solo: false, auto: true, notes: [] },
       drums: { kit: 'acoustic', vol: 0.8, mute: false, solo: false, pattern: 'basic', grid: {} },
@@ -286,6 +287,7 @@ export function changeKey(song, keyPc, mode) {
   for (const b of song.tracks.chords.blocks) {
     b.n = mode === fromMode && b.n ? b.n.map((p) => fitRange(p + delta, RANGES.chords)) : null;
   }
+  for (const n of song.tracks.chords.notes) n.p = shift(n.p, RANGES.chords);
   for (const n of song.tracks.melody.notes) n.p = shift(n.p, RANGES.melody);
   if (!song.tracks.bass.auto) for (const n of song.tracks.bass.notes) n.p = shift(n.p, RANGES.bass);
   song.keyPc = keyPc;
@@ -307,6 +309,13 @@ export function audible(song, track) {
   const t = song.tracks;
   const anySolo = TRACK_IDS.some((id) => t[id].solo);
   return !t[track].mute && (!anySolo || t[track].solo);
+}
+
+// Fill in fields added after a song was saved (autosave from an older version).
+export function normalizeSong(song) {
+  const c = song.tracks.chords;
+  if (!Array.isArray(c.notes)) c.notes = [];
+  return song;
 }
 
 /* ---------- Old (v1) songs ---------- */

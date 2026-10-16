@@ -69,6 +69,9 @@ export function compile(song) {
       push(h.s, { track: 'chords', inst: t.chords.inst, notes: h.notes, l: Math.min(h.l, total - h.s), vel: h.vel, strum: h.strum });
     }
   }
+  for (const n of t.chords.notes) {
+    push(n.s, { track: 'chords', inst: t.chords.inst, notes: [n.p], l: Math.min(n.l, total - n.s), vel: n.v });
+  }
   for (const n of t.melody.notes) {
     push(n.s, { track: 'melody', inst: t.melody.inst, notes: [n.p], l: Math.min(n.l, total - n.s), vel: n.v });
   }
