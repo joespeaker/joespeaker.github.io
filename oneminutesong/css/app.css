@@ -1,3 +1,8 @@
+@font-face { font-family: "Archivo"; src: url("../../fonts/archivo.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Permanent Marker"; src: url("../../fonts/permanent-marker.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("../../fonts/plex-mono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("../../fonts/plex-mono-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+
 /* Layout: a single tape-deck "faceplate" column, phone-first, panels stacked like deck sections.
    Color: putty plastic body, cream panels, tape-orange accent, VU-meter mustard, record red. */
 :root {

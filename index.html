@@ -6,6 +6,8 @@
     <title>Joe Bieker</title>
     <meta name="description" content="Joe Bieker's corner of the internet. Resume, music as jspeaker, KC Social Volleyball, and whatever I'm building next.">
     <meta name="author" content="Joe Bieker">
+    <meta name="theme-color" content="#f4f3ef" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
     <meta property="og:title" content="Joe Bieker">
     <meta property="og:description" content="Resume, music, volleyball, and whatever I'm building next.">
     <meta property="og:url" content="https://joebieker.com/">
@@ -18,23 +20,20 @@
             if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
         } catch (e) {}
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JDQKB8TRSR"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-JDQKB8TRSR');
+    <script type="speculationrules">
+    {"prerender": [{"where": {"href_matches": "/resume/"}, "eagerness": "moderate"}],
+     "prefetch": [{"where": {"href_matches": "/oneminutesong/"}, "eagerness": "moderate"}]}
     </script>
+    <script defer src="script.js"></script>
 </head>
 <body class="home">
+<a class="skip" href="#main">Skip to content</a>
 
 <header class="site-header">
     <div class="wrap">
-        <a class="brand" href="/">joe bieker<span>.</span></a>
+        <a class="brand" href="/"><i aria-hidden="true"></i>joe bieker</a>
         <nav class="site-nav" aria-label="Main">
             <a href="resume/">Resume</a>
             <a href="mailto:joebieker2486@outlook.com">Email</a>
@@ -45,47 +44,54 @@
     </div>
 </header>
 
-<main class="wrap">
+<main id="main" class="wrap">
 
-    <section class="intro">
+    <section class="hero">
         <p class="hi">hey there 👋</p>
-        <h1>I'm Joe.</h1>
+        <h1>I'm Joe<b>.</b></h1>
         <p class="lede">
             I build internal apps for a living, write songs as jspeaker, and run a volleyball club in
             Kansas City. This is my <mark>little corner of the internet</mark>, and I'll keep adding to it.
         </p>
     </section>
 
-    <div class="tiles">
-        <a class="tile feature" href="oneminutesong/">
-            <span class="meta">new · toy</span>
-            <h3>One Minute Song</h3>
+    <div class="bento">
+        <a class="tile oms" href="oneminutesong/">
+            <span class="tag">new · toy</span>
+            <h2>One Minute Song</h2>
             <p>Spin a prompt, then make a song before the clock runs out: drop chords on a piano roll, draw a melody, program drums. Real instruments, right in the browser.</p>
-            <span class="go">Play it →</span>
+            <span class="go">Play it <span>→</span></span>
+            <span class="deco eq" aria-hidden="true">
+                <i style="--h:.34;--d:.2"></i><i style="--h:.62;--d:.9"></i><i style="--h:.48;--d:.4"></i><i style="--h:.86;--d:1.3"></i><i style="--h:.58;--d:.1"></i><i style="--h:1;--d:.7"></i><i style="--h:.7;--d:1.1"></i><i style="--h:.42;--d:.5"></i><i style="--h:.78;--d:1.4"></i><i style="--h:.3;--d:.3"></i>
+            </span>
         </a>
-        <a class="tile" href="resume/">
-            <span class="meta">work</span>
-            <h3>Resume</h3>
+        <a class="tile cv" href="resume/">
+            <span class="tag">work</span>
+            <h2>Resume</h2>
             <p>Where I've worked, what I've built, and how to reach me.</p>
-            <span class="go">Read it →</span>
+            <span class="go">Read it <span>→</span></span>
+            <span class="deco cv-mark" aria-hidden="true">CV</span>
         </a>
-        <a class="tile" href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX">
-            <span class="meta">music</span>
-            <h3>jspeaker</h3>
+        <a class="tile music" href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX">
+            <span class="tag">music</span>
+            <h2>jspeaker</h2>
             <p>Alt / indie-pop. Debut album <em>Letters to a Ghost</em> is rolling out now.</p>
-            <span class="go">Listen on Spotify ↗</span>
+            <span class="go">Listen on Spotify <span class="out">↗</span></span>
+            <span class="deco vinyl" aria-hidden="true"></span>
         </a>
-        <a class="tile" href="https://www.instagram.com/kcsocialvolleyball/">
-            <span class="meta">volleyball</span>
-            <h3>KC Social Volleyball</h3>
+        <a class="tile vb" href="https://www.instagram.com/kcsocialvolleyball/">
+            <span class="tag">volleyball</span>
+            <h2>KC Social Volleyball</h2>
             <p>Free sand volleyball in Kansas City. Show up, play, meet people.</p>
-            <span class="go">@kcsocialvolleyball ↗</span>
+            <span class="go">@kcsocialvolleyball <span class="out">↗</span></span>
+            <span class="deco ball" aria-hidden="true"></span>
         </a>
-        <a class="tile" href="https://github.com/joespeaker">
-            <span class="meta">code</span>
-            <h3>GitHub</h3>
+        <a class="tile gh" href="https://github.com/joespeaker">
+            <span class="tag">code</span>
+            <h2>GitHub</h2>
             <p>Side projects, experiments, and the source for this site.</p>
-            <span class="go">github.com/joespeaker ↗</span>
+            <span class="go">github.com/joespeaker <span class="out">↗</span></span>
+            <span class="deco code" aria-hidden="true">&lt;/&gt;</span>
         </a>
     </div>
 
@@ -98,6 +104,5 @@
     </div>
 </footer>
 
-<script src="script.js"></script>
 </body>
 </html>
