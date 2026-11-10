@@ -6,6 +6,8 @@
     <title>Joe Bieker · Resume</title>
     <meta name="description" content="Joe Bieker builds internal apps at DH Pace in Olathe, Kansas, makes music as jspeaker, and runs KC Social Volleyball.">
     <meta name="author" content="Joe Bieker">
+    <meta name="theme-color" content="#f4f3ef" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
     <meta property="og:title" content="Joe Bieker">
     <meta property="og:description" content="Systems analyst by day. Songwriter, volleyball organizer and smart home tinkerer the rest of the time.">
     <meta property="og:url" content="https://joebieker.com/resume/">
@@ -18,23 +20,19 @@
             if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
         } catch (e) {}
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="preload" href="../fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="../css/site.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JDQKB8TRSR"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-JDQKB8TRSR');
+    <script type="speculationrules">
+    {"prerender": [{"where": {"href_matches": "/"}, "eagerness": "moderate"}]}
     </script>
+    <script defer src="../script.js"></script>
 </head>
-<body>
+<body class="resume">
+<a class="skip" href="#top">Skip to content</a>
 
 <header class="site-header">
     <div class="wrap">
-        <a class="brand" href="/">joe bieker<span>.</span></a>
+        <a class="brand" href="/"><i aria-hidden="true"></i>joe bieker</a>
         <nav class="site-nav" aria-label="Main">
             <a href="#work">Work</a>
             <a href="#projects" class="hide-sm">Projects</a>
@@ -50,9 +48,9 @@
 
 <main id="top" class="wrap">
 
-    <section class="intro">
+    <section class="hero">
         <p class="hi">hey there 👋</p>
-        <h1>I'm Joe.</h1>
+        <h1>I'm Joe<b>.</b></h1>
         <p class="lede">
             By day I'm a systems analyst at <a href="https://www.dhpace.com/">DH Pace</a> in Olathe, building
             the <mark>internal apps people actually use to get their work done</mark>. Approvals, forms,
@@ -244,24 +242,24 @@
         <div>
             <div class="tiles">
                 <a class="tile" href="https://open.spotify.com/artist/0PqE7nnc4olRYC5i9LyzdX">
-                    <span class="meta">music</span>
+                    <span class="tag">music</span>
                     <h3>jspeaker</h3>
                     <p>I write and record alt / indie-pop. My debut album <em>Letters to a Ghost</em> is rolling out now.</p>
-                    <span class="go">Listen on Spotify ↗</span>
+                    <span class="go">Listen on Spotify <span class="out">↗</span></span>
                 </a>
                 <a class="tile" href="https://www.instagram.com/kcsocialvolleyball/">
-                    <span class="meta">volleyball</span>
+                    <span class="tag">volleyball</span>
                     <h3>KC Social Volleyball</h3>
                     <p>A free, come-as-you-are sand volleyball club I started in Kansas City. Show up, play, meet people.</p>
-                    <span class="go">@kcsocialvolleyball ↗</span>
+                    <span class="go">@kcsocialvolleyball <span class="out">↗</span></span>
                 </a>
                 <div class="tile">
-                    <span class="meta">video</span>
+                    <span class="tag">video</span>
                     <h3>YouTube with the roommates</h3>
                     <p>Me and my two roommates are building a channel together. More on that soon.</p>
                 </div>
                 <div class="tile">
-                    <span class="meta">tinkering</span>
+                    <span class="tag">tinkering</span>
                     <h3>Smart home stuff</h3>
                     <p>Home Assistant, a few Raspberry Pis and ESP32s, and more automations than any apartment needs.</p>
                 </div>
@@ -342,6 +340,5 @@
     </div>
 </footer>
 
-<script src="../script.js"></script>
 </body>
 </html>

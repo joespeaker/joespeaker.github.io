@@ -7,4 +7,4 @@ Allow: /
 User-agent: Googlebot
 Disallow: /qedwealthsolutions
 
-Sitemap: https://www.joebieker.com/sitemap.xml
+Sitemap: https://joebieker.com/sitemap.xml
